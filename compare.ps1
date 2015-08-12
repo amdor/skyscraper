@@ -12,7 +12,7 @@ Author: Zsolt Deak, 2015.07.23
 Param
  (
     [Parameter(Mandatory=$true)]
-    [hashtable]
+    [hashtable[]]
     $Data
  ) 
 
@@ -27,10 +27,28 @@ Param
     </style>
 </head>
 <body>
-    <table>
-        <tr $highlight><td>Uri</td><td>$($Data['CarUri'])</td> "
+    <table>"
+
+#get ALL keys
+[System.Collections.ArrayList]$DataKeys = @()
+ForEach($carData in $Data){
+    ForEach($key in $carData.Keys){
+        if(!$DataKeys.Contains($key)){
+            [void]$DataKeys.Add($key)
+        }
+    }
+}
+
+ForEach($key in $DataKeys){
+    $htmlContent += "`n        <tr>`n"
+    $htmlContent += "          <td>$key</td>"
+    ForEach($carData in $Data){
+        $htmlContent += "<td >$($carData[$key])</td>"
+    }
+    $htmlContent += "`n        </tr>`n"
+}
 
 
 #Finish up
-$htmlContent+= "`n`t</table>`n</body>`n</html>"
-$htmlContent
+$htmlContent+= "`t</table>`n</body>`n</html>"
+$htmlContent | Out-File ".\output\compare.html"

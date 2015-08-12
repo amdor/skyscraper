@@ -12,19 +12,21 @@ Author: Zsolt Deak, 2015.07.09
 Param
  (
     [Parameter(Mandatory=$true)]
-    [String]
+    [String[]]
     $Uri
  ) 
 
- $htmlPath = '.\src\html.html'
+ #the folder for the xmls, if doesn't exist, we create it
+ $outFolder = '.\output\data\'
 
- if(!(Test-Path $htmlPath -PathType Leaf))
+ If(!(Test-Path $outFolder))
  {
-    Throw "$htmlPath file is required, but not exists."
+    New-Item $outFolder -ItemType directory > $null
  }
 
+
 $ie=New-Object -ComObject InternetExplorer.Application
-$pathofhtml = Resolve-Path $htmlPath
+Write-Output "$Uri"
 $ie.Navigate($Uri)
 $i = 0
 while ($ie.busy) {
@@ -41,19 +43,24 @@ $doc=$ie.Document
 $elements = $doc.GetElementsByTagName("TABLE") | where {$_.className -eq "hirdetesadatok"}
 
 #Save data
-$dataTable = @{}
+[System.Collections.ArrayList]$dataTable = @()
+$dataTable += @{}
 $elements.innerText.split(“`r`n”) | ForEach-Object{
     # process line
     if($_ -like "*:*")
     {
         $tmp = $_ -Split ":"
-        $dataTable.Add($tmp[0], $tmp[1])
+        $dataTable[0].Add($tmp[0], $tmp[1])
     }
 }
-$dataTable.Add('CarUri', $Uri)
+$dataTable[0].Add('CarUri', $Uri)
 
-Out-File -InputObject $dataTable -FilePath '.\src\data.txt'
-
+$xmlName = $Uri -Split '/' | Select -Last 1
+#Saving the data obtained from the html page, comparing it with the already saved data
+Export-Clixml -Path ".\output\data\$xmlName.xml" -InputObject $dataTable
+Write-Output "Creating output html"
+& .\compare.ps1 -Data $dataTable
+#ie is no more needed
 get-process iexplore | stop-process
 
 Write-Output 'Done'
