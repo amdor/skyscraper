@@ -39,6 +39,7 @@ ForEach($carData in $Data){
     }
 }
 
+#Make rows and columns (row by row filling with every car's data)
 ForEach($key in $DataKeys){
     $htmlContent += "`n        <tr>`n"
     $htmlContent += "          <td>$key</td>"
