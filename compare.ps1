@@ -42,10 +42,17 @@ ForEach($carData in $Data){
 #Make rows and columns (row by row filling with every car's data)
 ForEach($key in $DataKeys){
     $htmlContent += "`n        <tr>`n"
-    $htmlContent += "          <td>$key</td>"
+    $htmlContent += "          <td>$key</td>`n"
+    #First we save data in an array for the comparing
+    $rowDataColumns = @()
     ForEach($carData in $Data){
-        $htmlContent += "<td >$($carData[$key])</td>"
+        $rowDataColumns += "          <td >$($carData[$key])</td>`n"
     }
+    #Second, we add the prepared (formatted) lines to the html content
+    ForEach($column in $rowDataColumns){
+        $htmlContent += $column
+    }
+    
     $htmlContent += "`n        </tr>`n"
 }
 
