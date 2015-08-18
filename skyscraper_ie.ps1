@@ -103,7 +103,7 @@ Function ScrapeWebPages{
         $xmlName = $url -Split '/' | Select -Last 1
         #Saving the data obtained from the html page, comparing it with the already saved data
         Write-Host "Saving data to .\output\data\$xmlName.xml"
-        Export-Clixml -Path ".\output\data\$xmlName.xml" -InputObject $dataTable
+        Export-Clixml -Path ".\output\data\$xmlName.xml" -InputObject $dataTable[$carIndex]
 
         $carIndex++
     }
@@ -148,7 +148,7 @@ $data
 If($UseSaved){
     $data = GetData-FromFiles
 } Else{
-    $data = ScrapeWebPages -InnerUri Uri -InnerIsPath Path
+    $data = ScrapeWebPages -InnerUri $Uri -InnerIsPath $Path
 }
 
 Write-Host "Creating output html"
