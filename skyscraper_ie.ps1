@@ -19,17 +19,21 @@ Author: Zsolt Deak, 2015.07.09
 
 Param
  (
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$true, ParameterSetName = "Online")]
     [String]
     $Uri,
+    [Parameter(ParameterSetName = "Online")]
     [switch]
     $IsPath,
+    [Parameter(ParameterSetName = "Offline")]
     [switch]
     $UseSaved
  ) 
 
- #This function walks through all urls, downloads its data, saves it into xmls and returns 
- #the sum of the data downloaded.
+ <#This function walks through all urls, downloads its data, saves it into xmls and returns 
+ the sum of the data downloaded.
+ This does the main functionalities.
+ #>
 Function ScrapeWebPages{
      Param
      (
@@ -115,7 +119,11 @@ Function ScrapeWebPages{
     Return
 }
 
-#This function loads the car datas (previously saved) and gives it back as
+<#This function loads the car datas (previously saved) and gives it back as
+.PARAMETER Path
+The path to the folder where the xml files are, containing car data.
+Defaults to .\output\data\
+#>
 Function GetData-FromFiles{
 
       Param
