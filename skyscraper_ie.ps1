@@ -12,6 +12,8 @@ we seek to scrape.
 .PARAMETER IsPath
 Determines if the Uri is path, if present, it means Uri is a path to a file.
 Explores the network
+.PARAMETER UseSaved
+Offline mode's switch, no other parameters are allowed nor processed
 .NOTES
 Author: Zsolt Deak, 2015.07.09
 #>
@@ -65,7 +67,6 @@ Function ScrapeWebPages{
 
     #For saving data, we make an array of hashtables. Each hashtable contains a car's data
     $dataTable = @()
-
     $carIndex = 0
     ForEach($url in $uris){
         #Protection against wrong websites
@@ -91,14 +92,17 @@ Function ScrapeWebPages{
         $doc=$ie.Document
         #Parse data
         Write-Host "Parsing data..."
-        $dataTable += @{}
         $elements = $doc.GetElementsByTagName("TABLE") | where {$_.className -eq "hirdetesadatok"}
-
+        If($elements -eq $null -or $elements.innerText -eq ''){
+            Continue
+        }
+        $dataTable += @{}
         $elements.innerText.split(“`r`n”) | ForEach-Object{
             # process line
             if($_ -like "*:*")
             {
                 $tmp = $_ -Split ":"
+                $tmp = $tmp.Trim() #remove leading and trailing spaces
                 $dataTable[$carIndex].Add($tmp[0], $tmp[1])
             }
         }
@@ -152,15 +156,22 @@ Function GetData-FromFiles{
 
 
 #Main
+
+# Get Start Time
+$scriptStartTime = (Get-Date)
 $data
 If($UseSaved){
     $data = GetData-FromFiles
 } Else{
-    $data = ScrapeWebPages -InnerUri $Uri -InnerIsPath $Path
+    $data = ScrapeWebPages
 }
 
+If(!$data){
+    Throw "No data to process."
+}
 Write-Host "Creating output html"
 & .\compare.ps1 -Data $data
 
 Write-Host 'Done'
+Write-Host $(((Get-Date) - $scriptStartTime).totalseconds) 'seconds elapsed'
 Exit

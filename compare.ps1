@@ -24,7 +24,30 @@ Function Get-ValueOfCars{
   $carWorthTable = @{}
 
   ForEach($carData in $Data){
-    
+    [regex]$wantedExpression = "^\d+"
+    #$power = $wantedExpression.Match($carData['Teljesítmény']).Value
+    $localWorthsTable = @{}
+    #Power
+    If($carData['Teljesítmény'] -match $wantedExpression){
+        $localWorthsTable.Add('Power', $Matches[0]/15)
+    } Else{
+        $localWorthsTable.Add('Power', 0)
+    }
+
+    #Condition
+    Switch -regex ($carData['Állapot']){
+        'Normál|Kitûnõ|Sérülésmentes|Megkímélt|Újszerû' { $localWorthsTable.Add('Condition', 0); break }
+        Default { $localWorthsTable.Add('Condition', -30); break }
+    }
+
+
+    #Add up the values to get a car's worth
+    $key = $carData['CarUri']
+    $carWorthTable.Add($key, 0)
+    ForEach($valueKey in $localWorthsTable.Keys){
+        $oldValue = $carWorthTable[$key]
+        $carWorthTable[$carData['CarUri']] += $localWorthsTable[$valueKey]
+    }
   }
 
   $carWorthTable
@@ -84,6 +107,7 @@ Function Get-ValueOfCars{
 [System.Collections.ArrayList]$dataKeys = @()
 $tableHeader = "`n        <thead>`n"
 $tableHeader += "          <tr><td></td>`n"
+$i = 0;
 ForEach($carData in $Data){
     ForEach($key in $carData.Keys){
         if(!$dataKeys.Contains($key)){
@@ -93,6 +117,7 @@ ForEach($carData in $Data){
     #Making the table header
     $carName = ($carData['CarUri'].split('/') | Select -Last 1).split('_') | Select -First 2
     $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($($carName[1]).ToUpper())</td>"
+    $i++
 }
 $tableHeader += "        </tr>`n     </thead>`n"
 
@@ -123,7 +148,7 @@ $htmlContent += "          <tfoot><tr>`n"
 $htmlContent += "           <td id=`"key`">Calculated value</td>`n"
 $valueTable = Get-ValueOfCars
 ForEach($carData in $Data){
-    $htmlContent += "           <td>$($value)</td>"
+    $htmlContent += "           <td>{0:N0}" -f $($valueTable[$carData['CarUri']]) + "</td>"
 }
 $htmlContent += "          </tfoot></tr>`n"
 
