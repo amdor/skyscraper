@@ -1,7 +1,7 @@
 <#.
 .SYNOPSIS
-This script is for scraping webpages using the Internet Explorer for parsing html and navigating
-on DOM objects.
+This script compares the properties of the cars and generates an html file presenting the properties and
+the real worth of the cars as well.
 .PARAMETER Data
 Data of the cars
 Explores the network
@@ -28,8 +28,10 @@ Function Get-ValueOfCars{
     #$power = $wantedExpression.Match($carData['Teljesítmény']).Value
     $localWorthsTable = @{}
     #Power
-    If($carData['Teljesítmény'] -match $wantedExpression){
-        $localWorthsTable.Add('Power', $Matches[0]/15)
+    [Int32]$power = 1
+    If(($carData['Teljesítmény'] -replace " ","") -match $wantedExpression){
+        $power = $Matches[0]
+        $localWorthsTable.Add('Power', $Matches[0]/14)
     } Else{
         $localWorthsTable.Add('Power', 0)
     }
@@ -37,9 +39,55 @@ Function Get-ValueOfCars{
     #Condition
     Switch -regex ($carData['Állapot']){
         'Normál|Kitûnõ|Sérülésmentes|Megkímélt|Újszerû' { $localWorthsTable.Add('Condition', 0); break }
-        Default { $localWorthsTable.Add('Condition', -30); break }
+        Default { $localWorthsTable.Add('Condition', -20); break }
     }
 
+    #Trunk space
+     If(($carData['Csomagtartó'] -replace " ","") -match $wantedExpression){
+        $localWorthsTable.Add('Trunk', $Matches[0]/150)
+    } Else{
+        $localWorthsTable.Add('Trunk', 0)
+    }
+
+    #Own mass, -5 is the penalty if sy leaves this field (1500 kg, average car weight)
+     If(($carData['Saját tömeg'] -replace " ","") -match $wantedExpression){
+        $localWorthsTable.Add('Mass', -$Matches[0]/500)
+    } Else{
+        $localWorthsTable.Add('Mass', -3)
+    }
+
+    #Speedometer: first 100 000 is 0-10 proportianately, the part from 100 000 to 200 000 is plus 1-5 similarily
+    #from 200 000 it's 2.5 penalty for every 100 000 (proportianately) 
+     If(($carData['Kilométeróra állása'] -replace " ","") -match $wantedExpression){
+        $speedo = $Matches[0]/10000
+        If($speedo -gt 10 -and $speedo -le 20){
+            $speedo = 10 + (($speedo - 10) / 2)
+        } ElseIf($speedo -gt 20){
+            $speedo = 15 + (($speedo - 20) / 4)
+        }
+        $localWorthsTable.Add('Speedometer', -$speedo)
+    } Else{
+        $localWorthsTable.Add('Speedometer', -12)
+    }
+
+    #Price is the price / (power * 1000) if there is no problem (like no power or price data)
+    $carPrice = 1
+    If($power -ne 1){
+        If($carData['Akciós ár']){
+            $carPrice = $carData['Akciós ár'] -replace '\.',''
+        } Else{
+            $carPrice = $carData['Vételár'] -replace '\.',''
+        }
+        If($carPrice -match $wantedExpression){
+            $carPrice = $Matches[0] / ($power * 1000)
+        } Else{
+            $carPrice = 1
+        }
+    } Else{
+        $carPrice = 1
+    }
+    $localWorthsTable.Add('Price', $carPrice)
+    
 
     #Add up the values to get a car's worth
     $key = $carData['CarUri']
@@ -48,7 +96,7 @@ Function Get-ValueOfCars{
         $oldValue = $carWorthTable[$key]
         $carWorthTable[$carData['CarUri']] += $localWorthsTable[$valueKey]
     }
-  }
+  }#end of foreach Data
 
   $carWorthTable
   Return
