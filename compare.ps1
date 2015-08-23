@@ -70,7 +70,7 @@ Function Get-ValueOfCars{
         $localWorthsTable.Add('Speedometer', -12)
     }
 
-    #Price is the price / (power * 1000) if there is no problem (like no power or price data)
+    #Price is calculated from the price and the power if there is no problem (like no power or price data)
     $carPrice = 1
     If($power -ne 1){
         If($carData['Akciós ár']){
@@ -79,7 +79,7 @@ Function Get-ValueOfCars{
             $carPrice = $carData['Vételár'] -replace '\.',''
         }
         If($carPrice -match $wantedExpression){
-            $carPrice = $Matches[0] / ($power * 1000)
+            $carPrice = ($power * 500000) / $Matches[0]
         } Else{
             $carPrice = 1
         }
@@ -87,7 +87,31 @@ Function Get-ValueOfCars{
         $carPrice = 1
     }
     $localWorthsTable.Add('Price', $carPrice)
-    
+
+    #Date involved components
+    If($carData['Évjárat']){
+        $dateOfProd = $carData['Évjárat']
+        If(($dateOfProd -split "/").Count -lt 2){
+            $dateOfProd = [datetime] ($dateOfProd + "/01")
+        } Else{
+            $dateOfProd = [datetime] $dateOfProd
+        }
+        $currentDate = Get-Date
+        $yearsOld = $currentDate.Year - $dateOfProd.Year
+        $monthsOld = $currentDate.Month - $dateOfProd.Month
+        #The base poit of car worth loss was http://www.edmunds.com/car-buying/how-fast-does-my-new-car-lose-value-infographic.html
+        $priceLossPercent = $monthsOld
+        If(($yearsOld -le 0) -and ($monthsOld -le 0)){
+            $priceLossPercent = 0
+        } ElseIf($yearsOld -le 5){
+            $priceLossPercent += 11 * ($yearsOld - 1) + 19
+        } ElseIf($yearsOld -le 30){
+            $priceLossPercent += [math]::Log10($yearsOld - 3) * 10 + 60
+        } ElseIf($yearsOld -gt 30){
+            $priceLossPercent += 192 * [math]::Pow([math]::E, (-0.03 * $yearsOld))
+        }
+        $localWorthsTable.Add('AgeLoss', -$priceLossPercent / 3)
+    }
 
     #Add up the values to get a car's worth
     $key = $carData['CarUri']
