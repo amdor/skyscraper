@@ -3,14 +3,18 @@
 This script is for scraping hasznaltauto.hu using the Internet Explorer for parsing html and navigating
 on DOM objects.
 
-If using with a source file containing the urls to scrape, each url has to be in a new line, the Uri parameter
-must be the file's path and IsPath parameter must be set.
-Otherwise just give in the url of the car and the script collects its data.
+The script funcionates in 3 modes:
+-If Uri parameter is set, then scrapes one car's page, saves its data and creates an html from it into the .\output folder
+
+-If the Path parameter is set, does tha same as if Uri is set but with all the urls given in the file marked by the path.
+NOTE: The file has to be simple text file and every url must be in a separate line
+
+-If UseSaved parameter is set, it means the script uses all previously saved car data and generates the output html from them.
+NOTE: All data is saved under .\output\data
 .PARAMETER Uri
-The uri of the targeted webpage or the path to the text file containing the URIs of the webpages
-we seek to scrape.
-.PARAMETER IsPath
-Determines if the Uri is path, if present, it means Uri is a path to a file.
+The uri of the targeted webpage we seek to scrape.
+.PARAMETER Path
+Path to a file containing url's of cars at hasznaltauto.hu
 Explores the network
 .PARAMETER UseSaved
 Offline mode's switch, no other parameters are allowed nor processed
@@ -24,26 +28,35 @@ Param
     [Parameter(Mandatory=$true, ParameterSetName = "Online")]
     [String]
     $Uri,
-    [Parameter(ParameterSetName = "Online")]
-    [switch]
-    $IsPath,
+    [Parameter(Mandatory=$true, ParameterSetName = "MultiOnline")]
+    [string]
+    $Path,
     [Parameter(ParameterSetName = "Offline")]
     [switch]
     $UseSaved
  ) 
 
- <#This function walks through all urls, downloads its data, saves it into xmls and returns 
+ <#This function walks through all urls, downloads their data, saves them into xmls and returns 
  the sum of the data downloaded.
  This does the main functionalities.
+ In compatibility mode uses IE to navigate to the webpage, else uses PS Invoke-WebRequest
  #>
 Function ScrapeWebPages{
      Param
      (
         [String]
-        $InnerUri = $Uri,
+        $InnerUri,
+        [String]
+        $InnerPath,
         [switch]
-        $InnerIsPath = $IsPath
+        $compatibilityMode
      ) 
+
+     If($Path -and !$InnerPath){
+        $InnerPath = $Path
+     } ElseIf($Uri -and !$InnerUri){
+        $InnerUri = $Uri
+     }
 
      #The folder for the xmls, if doesn't exist, we create it
      $outFolder = '.\output\data\'
@@ -55,11 +68,11 @@ Function ScrapeWebPages{
 
      #Test if Uri points at a valid file
      $uris = @()
-     If($InnerIsPath){
-        If(!(Test-Path $InnerUri -PathType Leaf)){
-            Throw "File not found at $InnerUri"
+     If($InnerPath){
+        If(!(Test-Path $InnerPath -PathType Leaf)){
+            Throw "File not found at $InnerPath"
         }
-        $uris = Get-Content $InnerUri
+        $uris = Get-Content $InnerPath
      }
      Else{
         $uris += $InnerUri 
@@ -74,25 +87,46 @@ Function ScrapeWebPages{
             Write-Error "$url is not pointing at www.hasznaltauto.hu, skipping"
             Continue
         }
-        $ie=New-Object -ComObject InternetExplorer.Application
-        Write-Host "$url"
-        $ie.Navigate($url)
-        $i = 0
-        while ($ie.busy) {
-	        Start-Sleep -Milliseconds 600
-            Write-Host "Navigating to URI $i"
-            $i++
-            if($i -ge 32)
-            {
-                Write-Error "Navigation timed out"
-                Continue
+        Write-Host "Navigating to "$url
+        #Distinguish between compatibility mode and normal
+        $doc = $null
+        If($compatibilityMode){
+            $ie=New-Object -ComObject InternetExplorer.Application
+            Write-Host "$url"
+            $ie.Navigate($url)
+            $i = 0
+            while ($ie.busy) {
+	            Start-Sleep -Milliseconds 600
+                Write-Host "Navigating to URI $i"
+                $i++
+                if($i -ge 32)
+                {
+                    Write-Error "Navigation timed out"
+                    Continue
+                }
             }
+                Write-Host "Navigating to URI is done"
+            $doc=$ie.Document
+        } Else{
+            #$doc = & .\feature\skyscraper.ps1 -Uri $url
+            #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
+            [Microsoft.PowerShell.Commands.HtmlWebResponseObject]$doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
+            #Response is OK, and yet to be html
+            if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
+            {
+                Throw "Inproducable server response" #exit
+            }
+
+            Write-Host 'Done downloading page data'
         }
-            Write-Host "Navigating to URI is done"
-        $doc=$ie.Document
+        
         #Parse data
         Write-Host "Parsing data..."
-        $elements = $doc.GetElementsByTagName("TABLE") | where {$_.className -eq "hirdetesadatok"}
+        Try{
+            $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | where {$_.className -eq "hirdetesadatok"}
+        } Catch{
+            Continue
+        }
         If($elements -eq $null -or $elements.innerText -eq ''){
             Continue
         }
@@ -117,8 +151,10 @@ Function ScrapeWebPages{
     }
     #return data
     $dataTable
-    #ie is no more needed
-    get-process iexplore | stop-process
+    If($compatibilityMode){
+        #ie is no more needed
+        get-process iexplore | stop-process
+    }
 
     Return
 }
@@ -163,7 +199,11 @@ $data
 If($UseSaved){
     $data = GetData-FromFiles
 } Else{
-    $data = ScrapeWebPages
+    If($PSVersionTable.PSVersion.Major -ge 3){
+        $data = ScrapeWebPages
+    } Else{
+        $data = ScrapeWebPages -compatibilityMode
+    }
 }
 
 If(!$data){

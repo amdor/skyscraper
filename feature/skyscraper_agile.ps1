@@ -15,7 +15,7 @@ Param
     $Uri
  ) 
 
-Add-Type -Path '.\src\Net45\HtmlAgilityPack.dll'
+Add-Type -Path '.\..\src\Net45\HtmlAgilityPack.dll'
 
 Write-Output 'Done, success'
 Exit
