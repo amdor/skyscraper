@@ -123,7 +123,7 @@ Function ScrapeWebPages{
         #Parse data
         Write-Host "Parsing data..."
         Try{
-            $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | where {$_.className -eq "hirdetesadatok"}
+            $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
         } Catch{
             Continue
         }
