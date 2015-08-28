@@ -24,6 +24,7 @@ Function Get-ValueOfCars{
   $carWorthTable = @{}
 
   ForEach($carData in $Data){
+    Write-Host "Getting value of $($carData['CarUri'])"
     [regex]$wantedExpression = "^\d+"
     #$power = $wantedExpression.Match($carData['Teljesítmény']).Value
     $localWorthsTable = @{}
@@ -188,7 +189,7 @@ ForEach($carData in $Data){
     }
     #Making the table header
     $carName = ($carData['CarUri'].split('/') | Select -Last 1).split('_') | Select -First 2
-    $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($($carName[1]).ToUpper())</td>"
+    $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($([string]$carName[1]).ToUpper())</td>"
     $i++
 }
 $tableHeader += "        </tr>`n     </thead>`n"

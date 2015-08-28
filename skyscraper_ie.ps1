@@ -110,11 +110,13 @@ Function ScrapeWebPages{
         } Else{
             #$doc = & .\feature\skyscraper.ps1 -Uri $url
             #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
-            [Microsoft.PowerShell.Commands.HtmlWebResponseObject]$doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
+            $doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
             #Response is OK, and yet to be html
             if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
             {
-                Throw "Inproducable server response" #exit
+                Write-Host "Wrong response: $($doc.StatusCode), url $url"
+                Start-Sleep -Milliseconds 1000
+                Continue
             }
 
             Write-Host 'Done downloading page data'
