@@ -119,8 +119,9 @@ Function Get-ValueOfCars{
     $carWorthTable.Add($key, 0)
     ForEach($valueKey in $localWorthsTable.Keys){
         $oldValue = $carWorthTable[$key]
-        $carWorthTable[$carData['CarUri']] += $localWorthsTable[$valueKey]
+        $carWorthTable[$key] += $localWorthsTable[$valueKey]
     }
+    $carWorthTable[$key] += 30
   }#end of foreach Data
 
   $carWorthTable

@@ -47,7 +47,7 @@ Function Navigate{
         [String]
         $Url,
         [switch]
-        $compatibilityMode = $false
+        $IsCompatibilityMode = $false
     )
 
      If($compatibilityMode){
@@ -81,6 +81,7 @@ Function Navigate{
 
             Write-Host 'Done downloading page data'
         }
+        $doc
 }
 
  <#This function walks through all urls, downloads their data, saves them into xmls and returns 
@@ -147,7 +148,7 @@ Function ScrapeWebPages{
         #Else
         Write-Host "Navigating to "$url
         #Distinguish between compatibility mode and normal
-        $doc = Navigate -Url $url -IsCompatibilityMode $compatibilityMode
+        If($compatibilityMode){ $doc = Navigate -Url $url -IsCompatibilityMode } Else{ $doc = Navigate -Url $url }        
         
         #Parse data
         Write-Host "Parsing data..."
