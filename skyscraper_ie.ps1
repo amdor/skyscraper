@@ -36,6 +36,53 @@ Param
     $UseSaved
  ) 
 
+<#Navigating to the given url with IE object or with
+the newer PS method Invoke-Webrequest
+#>
+Function Navigate{
+
+    Param
+    (
+        [Parameter(Mandatory=$true)]
+        [String]
+        $Url,
+        [switch]
+        $compatibilityMode = $false
+    )
+
+     If($compatibilityMode){
+            $ie=New-Object -ComObject InternetExplorer.Application
+            Write-Host "$url"
+            $ie.Navigate($url)
+            $i = 0
+            while ($ie.busy) {
+	            Start-Sleep -Milliseconds 600
+                Write-Host "Navigating to URI $i"
+                $i++
+                if($i -ge 32)
+                {
+                    Write-Error "Navigation timed out"
+                    Continue
+                }
+            }
+                Write-Host "Navigating to URI is done"
+            $doc=$ie.Document
+        } Else{
+            #$doc = & .\feature\skyscraper.ps1 -Uri $url
+            #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
+            $doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
+            #Response is OK, and yet to be html
+            if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
+            {
+                Write-Host "Wrong response: $($doc.StatusCode), url $url"
+                Start-Sleep -Milliseconds 1000
+                Continue
+            }
+
+            Write-Host 'Done downloading page data'
+        }
+}
+
  <#This function walks through all urls, downloads their data, saves them into xmls and returns 
  the sum of the data downloaded.
  This does the main functionalities.
@@ -87,40 +134,20 @@ Function ScrapeWebPages{
             Write-Error "$url is not pointing at www.hasznaltauto.hu, skipping"
             Continue
         }
+        #Searching for matching saved car data
+        $xmlName = $url -Split '/' | Select -Last 1
+        If(Test-Path "$outFolder$xmlName.xml"){
+            Write-Host "Reading $xmlName"
+            $currentCarData = Import-Clixml -Path "$outFolder$xmlName.xml"
+            $dataTable += @{}
+            $dataTable[$carIndex] = $currentCarData
+            $carIndex++
+            Continue
+        }
+        #Else
         Write-Host "Navigating to "$url
         #Distinguish between compatibility mode and normal
-        $doc = $null
-        If($compatibilityMode){
-            $ie=New-Object -ComObject InternetExplorer.Application
-            Write-Host "$url"
-            $ie.Navigate($url)
-            $i = 0
-            while ($ie.busy) {
-	            Start-Sleep -Milliseconds 600
-                Write-Host "Navigating to URI $i"
-                $i++
-                if($i -ge 32)
-                {
-                    Write-Error "Navigation timed out"
-                    Continue
-                }
-            }
-                Write-Host "Navigating to URI is done"
-            $doc=$ie.Document
-        } Else{
-            #$doc = & .\feature\skyscraper.ps1 -Uri $url
-            #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
-            $doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
-            #Response is OK, and yet to be html
-            if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
-            {
-                Write-Host "Wrong response: $($doc.StatusCode), url $url"
-                Start-Sleep -Milliseconds 1000
-                Continue
-            }
-
-            Write-Host 'Done downloading page data'
-        }
+        $doc = Navigate -Url $url -IsCompatibilityMode $compatibilityMode
         
         #Parse data
         Write-Host "Parsing data..."
@@ -144,10 +171,9 @@ Function ScrapeWebPages{
         }
         $dataTable[$carIndex].Add('CarUri', $url)
 
-        $xmlName = $url -Split '/' | Select -Last 1
         #Saving the data obtained from the html page, comparing it with the already saved data
         Write-Host "Saving data to .\output\data\$xmlName.xml"
-        Export-Clixml -Path ".\output\data\$xmlName.xml" -InputObject $dataTable[$carIndex]
+        Export-Clixml -Path "$outFolder$xmlName.xml" -InputObject $dataTable[$carIndex]
 
         $carIndex++
     }
