@@ -17,7 +17,7 @@ The uri of the targeted webpage we seek to scrape.
 Path to a file containing url's of cars at hasznaltauto.hu
 Explores the network
 .PARAMETER UseSaved
-Offline mode's switch, no other parameters are allowed nor processed
+Offline mode's switch, neither other parameters are allowed nor processed
 .NOTES
 Author: Zsolt Deak, 2015.07.09
 #>
@@ -35,6 +35,9 @@ Param
     [switch]
     $UseSaved
  ) 
+
+$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance
+
 
 <#Navigating to the given url with IE object or with
 the newer PS method Invoke-Webrequest
@@ -137,7 +140,7 @@ Function ScrapeWebPages{
         }
         #Searching for matching saved car data
         $xmlName = $url -Split '/' | Select -Last 1
-        If(Test-Path "$outFolder$xmlName.xml"){
+        If(!$TESTMODE -and (Test-Path "$outFolder$xmlName.xml")){
             Write-Host "Reading $xmlName"
             $currentCarData = Import-Clixml -Path "$outFolder$xmlName.xml"
             $dataTable += @{}
