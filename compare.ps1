@@ -16,26 +16,30 @@ Param
     $Data
  ) 
 
-
+<#
+This function enumerates through parameters of every cars' primary parameters
+and generates their worth from them.
+Orders the values descendingly, returns the ordered array, in which each element has a Name and Value property
+#>
 Function Get-ValueOfCars{
     
   #Value marker
-  #carWorthTable is to hold the sum value numbers of the car, keys are the CarUri-s
+  #carWorthTable is to hold the sum value(worth) numbers of the car, one number for each 
+  #and keys are the CarUri-s for these values
   $carWorthTable = @{}
 
   ForEach($carData in $Data){
     Write-Host "Getting value of $($carData['CarUri'])"
+    #Gets numeric value
     [regex]$wantedExpression = "^\d+"
-    #$power = $wantedExpression.Match($carData['Teljesítmény']).Value
     $localWorthsTable = @{}
-    #Power
-    [Int32]$power = 1
+
+    #Power in kW
+    [Int32]$power = 14
     If(($carData['Teljesítmény'] -replace " ","") -match $wantedExpression){
         $power = $Matches[0]
-        $localWorthsTable.Add('Power', $Matches[0]/14)
-    } Else{
-        $localWorthsTable.Add('Power', 0)
     }
+    $localWorthsTable.Add('Power', $power/14)
 
     #Condition
     Switch -regex ($carData['Állapot']){
@@ -50,14 +54,14 @@ Function Get-ValueOfCars{
         $localWorthsTable.Add('Trunk', 0)
     }
 
-    #Own mass, -5 is the penalty if sy leaves this field (1500 kg, average car weight)
+    #Own mass, -3 is the penalty if sy leaves this field (1500 kg, average car weight)
      If(($carData['Saját tömeg'] -replace " ","") -match $wantedExpression){
         $localWorthsTable.Add('Mass', -$Matches[0]/500)
     } Else{
         $localWorthsTable.Add('Mass', -3)
     }
 
-    #Speedometer: first 100 000 is 0-10 proportianately, the part from 100 000 to 200 000 is plus 1-5 similarily
+    #Speedometer: first 100 000 is 0-10 proportianately, the part from 100 000 to 200 000 is plus 1-5 penalty point similarily
     #from 200 000 it's 2.5 penalty for every 100 000 (proportianately) 
      If(($carData['Kilométeróra állása'] -replace " ","") -match $wantedExpression){
         $speedo = $Matches[0]/10000
@@ -71,9 +75,9 @@ Function Get-ValueOfCars{
         $localWorthsTable.Add('Speedometer', -12)
     }
 
-    #Price is calculated from the price and the power if there is no problem (like no power or price data)
+    #Price is calculated from the price and the power if there is no problem (like no power or price data), NOTE: max cap
     $carPrice = 1
-    If($power -ne 1){
+    If($power -gt 14){
         If($carData['Akciós ár']){
             $carPrice = $carData['Akciós ár'] -replace '\.',''
         } Else{
@@ -81,6 +85,7 @@ Function Get-ValueOfCars{
         }
         If($carPrice -match $wantedExpression){
             $carPrice = ($power * 500000) / $Matches[0]
+            $carPrice = Measure-Object -Maximum @($carPrice, 10)
         } Else{
             $carPrice = 1
         }
@@ -118,13 +123,12 @@ Function Get-ValueOfCars{
     $key = $carData['CarUri']
     $carWorthTable.Add($key, 0)
     ForEach($valueKey in $localWorthsTable.Keys){
-        $oldValue = $carWorthTable[$key]
         $carWorthTable[$key] += $localWorthsTable[$valueKey]
     }
-    $carWorthTable[$key] += 30
+    $carWorthTable[$key] += 70#making it positive in MOST cases and giving it non null value in every case
   }#end of foreach Data
 
-  $carWorthTable
+  $carWorthTable.GetEnumerator() | Sort -Property Value -Descending
   Return
 
 }
@@ -176,53 +180,63 @@ Function Get-ValueOfCars{
 <body>
     <table>"
 
-#Get ALL keys(uniquely)
-#WARNING: we massively rely on the fact that ForEach enumerates arrays sequentially!!!! This is for the sake of clean code
-[System.Collections.ArrayList]$dataKeys = @()
+#Get ALL keys(uniquely) and make the table head with car names and their links
+#NOTE: valueArray is ordered and that is why everywhere this array is used for the iteration.
+[System.Collections.ArrayList]$carParameterNames = @()
+[Object[]]$valueArray = Get-ValueOfCars
+
+#we need an indexer object for accessing by uri the cars in $Data (otherwise the array structure is well enough satisfactory, this is the only excpetion)
+$carDataIndexerTable = @{}
+For($i = 0; $i -lt $Data.Count; $i++){
+    $car = $Data[$i]
+    $carDataIndexerTable.Add($car['CarUri'], $i)
+}
+
 $tableHeader = "`n        <thead>`n"
 $tableHeader += "          <tr><td></td>`n"
 $i = 0;
-ForEach($carData in $Data){
+For($i = 0; $i -lt $valueArray.Count; $i++){
+     $carUri = $valueArray[$i].Name
+     $carData = $Data[$carDataIndexerTable[$carUri]]
     ForEach($key in $carData.Keys){
-        if(!$dataKeys.Contains($key)){
-            [void]$dataKeys.Add($key)
+        if(!$carParameterNames.Contains($key)){
+            [void]$carParameterNames.Add($key)
         }
     }
     #Making the table header
     $carName = ($carData['CarUri'].split('/') | Select -Last 1).split('_') | Select -First 2
-    $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($([string]$carName[1]).ToUpper())</td>"
-    $i++
+    $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($([string]$carName[1]).ToUpper())</td>`n"
 }
 $tableHeader += "        </tr>`n     </thead>`n"
 
+
+#Make rows and columns (column by column so car by car filling the rows) for table body
+#First culomn is for the parameters others for the cars
+#TABLE BODY
+$carParameterNames.Remove('CarUri')
 $htmlContent += $tableHeader + "        <tbody>`n"
-
-#Make rows and columns (row by row filling with every car's data)
-$dataKeys.Remove('CarUri')
-ForEach($key in $dataKeys){
-
+ForEach($paramName in $carParameterNames){
     $htmlContent += "          <tr>`n"
-    $htmlContent += "           <td id=`"key`">$key</td>`n"
-    #First we save data in an array for the comparing
-    $rowDataColumns = @()
-    ForEach($carData in $Data){
-        $rowDataColumns += "           <td >$($carData[$key])</td>`n"
+    $htmlContent += "           <td id=`"key`">$paramName</td>`n"
+    #for every car
+    For($i = 0; $i -lt $valueArray.Count; $i++){
+        $carUri = $valueArray[$i].Name
+        $carData = $Data[$carDataIndexerTable[$carUri]]
+        $htmlContent += "           <td>$($carData[$paramName])</td>`n"
     }
-    #Second, we add the prepared (formatted) lines to the html content
-    ForEach($column in $rowDataColumns){
-        $htmlContent += $column
-    }
-    
     $htmlContent += "          </tr>`n"
 }
+$htmlContent += "        </tbody>`n"
+
+    
 
 #Last row is calculated from the data
 #First column is always the key for the row, it's identifier
 $htmlContent += "          <tfoot><tr>`n"
 $htmlContent += "           <td id=`"key`">Calculated value</td>`n"
-$valueTable = Get-ValueOfCars
-ForEach($carData in $Data){
-    $htmlContent += "           <td>{0:N0}" -f $($valueTable[$carData['CarUri']]) + "</td>"
+
+For($i = 0; $i -lt $valueArray.Count; $i++){
+    $htmlContent += "           <td>{0:N0}" -f $($valueArray[$i].Value) + "</td>"
 }
 $htmlContent += "          </tfoot></tr>`n"
 

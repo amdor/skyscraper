@@ -57,7 +57,7 @@ Function Gather-Links{
         $link = $null   
     }
     #>
-
+    #Grab the links from the page with regex
     [regex]$linkRegex = "http://www.hasznaltauto.hu/auto/(.*/.*)*`">"
     Write-Host "Finding and saving links to $outfile..."
     $links = $linkRegex.Matches($Script:doc.Content)
