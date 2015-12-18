@@ -242,7 +242,7 @@ If(!$data){
     Throw "No data to process."
 }
 Write-Host "Creating output html"
-& .\compare.ps1 -Data $data
+& .\compare.ps1 -Data $data #returns html
 
 Write-Host 'Done'
 Write-Host $(((Get-Date) - $scriptStartTime).totalseconds) 'seconds elapsed'

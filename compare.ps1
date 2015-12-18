@@ -243,4 +243,5 @@ $htmlContent += "          </tfoot></tr>`n"
 #Finish up
 $htmlContent+= "`t</table>`n</body>`n</html>"
 $htmlContent | Out-File ".\output\compare.html"
+$htmlContent #return
 Exit
