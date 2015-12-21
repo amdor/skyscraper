@@ -30,7 +30,7 @@ function windowLoaded(event) {
     var textField = document.createElement("INPUT");
     textField.id = "uriInput"+inputUriCount;
     textField.type = "text";
-    textField.name = "uri";
+    textField.name = "uri"+inputUriCount;
     
     //add a new input field, or remove current
     var anchorButtonPlus = document.createElement("A");
@@ -51,8 +51,11 @@ function windowLoaded(event) {
     addEvent(inputContainerDiv,"click", addTextDiv);
     addEvent(inputContainerDiv,"click", deleteTextDiv);
      
-    textDivTemplate = textDiv;
+    textDivTemplate = textDiv.cloneNode(true); //clone it to avoid inheriting further modifications needed for the first row only
     inputUriCount++;
+    
+    //for the first  row hide minus button
+    anchorButtonMinus.style.display = "none";
     
 }
 
@@ -64,6 +67,7 @@ function windowLoaded(event) {
 function addTextDiv(event) {
     if (event.target.className === "roundButton" && event.target.innerHTML === "+") {
         var newTextDiv = textDivTemplate.cloneNode(true);
+        newTextDiv.getElementsByTagName("INPUT");
         inputContainerDiv.insertBefore(newTextDiv, sendButton);
         inputUriCount++;
     }

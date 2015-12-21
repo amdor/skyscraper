@@ -36,7 +36,7 @@ Param
     $UseSaved
  ) 
 
-$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance
+$Script:TESTMODE = $false #testmode alters behavior, doesn't use cached data for instance
 
 
 <#Navigating to the given url with IE object or with
@@ -138,15 +138,20 @@ Function ScrapeWebPages{
             Write-Error "$url is not pointing at www.hasznaltauto.hu, skipping"
             Continue
         }
-        #Searching for matching saved car data
+        #Searching for matching saved car data A.K.A. caching, if not in testmode, there is cached data
+        #and the cached data was cached today
         $xmlName = $url -Split '/' | Select -Last 1
-        If(!$TESTMODE -and (Test-Path "$outFolder$xmlName.xml")){
-            Write-Host "Reading $xmlName"
-            $currentCarData = Import-Clixml -Path "$outFolder$xmlName.xml"
-            $dataTable += @{}
-            $dataTable[$carIndex] = $currentCarData
-            $carIndex++
-            Continue
+        $xmlPath = "$outFolder$xmlName.xml"
+        If(!$TESTMODE -and (Test-Path $xmlPath)){
+            If((Get-Item -Path $xmlPath).CreationTime.Date -eq (Get-Date).Date)
+            {
+                Write-Host "Reading $xmlName"
+                $currentCarData = Import-Clixml -Path $xmlPath
+                $dataTable += @{}
+                $dataTable[$carIndex] = $currentCarData
+                $carIndex++
+                Continue
+            }
         }
         #Else
         Write-Host "Navigating to "$url
@@ -176,8 +181,8 @@ Function ScrapeWebPages{
         $dataTable[$carIndex].Add('CarUri', $url)
 
         #Saving the data obtained from the html page, comparing it with the already saved data
-        Write-Host "Saving data to .\output\data\$xmlName.xml"
-        Export-Clixml -Path "$outFolder$xmlName.xml" -InputObject $dataTable[$carIndex]
+        Write-Host "Saving data to $xmlPath"
+        Export-Clixml -Path $xmlPath -InputObject $dataTable[$carIndex]
 
         $carIndex++
     }
