@@ -1,8 +1,20 @@
+<#
+.SYNOPSIS
+Listens to localhost:8089. If hears any POST request, repsponse them with the proper html content 
+given back by the other powershell function. Waits for car urls in the post body, separated by new
+line character.
+8 urls are processed at maximum.
+.NOTES
+Author: Zsolt Deak, 2015.12
+#>
 
 
-
-
-
+<#
+.SYNOPSIS
+Process requests (yet to be async) by sending them forward to the function
+.PARAMETER Context
+The HttpListenerContext from the request that is caught
+#>
 function Process-RequestsAsync{
      Param( 
         [System.Net.HttpListenerContext]
@@ -16,13 +28,26 @@ function Process-RequestsAsync{
         [System.IO.Stream]$postBodyStream = $innerContext.Request.InputStream
         $encoding = $innerContext.Request.ContentEncoding
         [System.IO.StreamReader]$reader = New-Object System.IO.StreamReader($postBodyStream,$encoding)
-        $uri = $reader.ReadToEnd()
-        $responseString =  & .\skyscraper_ie.ps1 -Uri $uri
+
+        $readCounter = 0
+        $uris = @()
+        #if count is less than readCounter, it means las read was unsuccessfull
+        While(($uris.Count -eq $readCounter) -and ($readCounter -lt 8)){
+            $readCounter++
+            $newLine = $reader.ReadLine()
+            if($newLine){
+                $uris += $newLine
+            }
+        }
+        Write-Host "Post body content reciever $uris"
+        $responseString =  & .\skyscraper_ie.ps1 -Uri $uris
         $buffer = [System.Text.Encoding]::UTF8.GetBytes($responseString)
+
         #Get a response stream and write the response to it.
         $response.ContentLength64 = $buffer.Length
         [System.IO.Stream]$output = $response.OutputStream
         $output.Write($buffer,0,$buffer.Length)
+
         #You must close the output stream.
         $output.Close()
     } Else{
@@ -33,8 +58,6 @@ function Process-RequestsAsync{
 
 
 function Process-Requests{
-    Write-Host "Process-Request method called"
-
     $context = $listener.GetContext()
     Process-RequestsAsync -Context $context #TODO  Make it async in PS (does not work with powershell object and start-job)
 }
@@ -61,6 +84,7 @@ try{
        <#[System.Management.Automation.PowerShell]$psInstance = [System.Management.Automation.PowerShell]::Create()
        [void]$psInstance.AddCommand("Process-Requests", $true)
        $psInstance.Invoke()#>
+       Write-Host "Waiting for request"
        Process-Requests
     }
 
@@ -70,6 +94,8 @@ try{
     }
 
     $listener.Close()
+}catch{
+    Write-Host "Exception  $($_.Exception)"
 }finally{
     if($listener){
         $listener.Abort()

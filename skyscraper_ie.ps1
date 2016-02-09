@@ -12,7 +12,7 @@ NOTE: The file has to be simple text file and every url must be in a separate li
 -If UseSaved parameter is set, it means the script uses all previously saved car data and generates the output html from them.
 NOTE: All data is saved under .\output\data
 .PARAMETER Uri
-The uri of the targeted webpage we seek to scrape.
+The uri of the targeted webpage we seek to scrape. Might be array.
 .PARAMETER Path
 Path to a file containing url's of cars at hasznaltauto.hu
 Explores the network
@@ -26,7 +26,7 @@ Author: Zsolt Deak, 2015.07.09
 Param
  (
     [Parameter(Mandatory=$true, ParameterSetName = "Online")]
-    [String]
+    [String[]]
     $Uri,
     [Parameter(Mandatory=$true, ParameterSetName = "MultiOnline")]
     [string]
@@ -95,7 +95,7 @@ Function Navigate{
 Function ScrapeWebPages{
      Param
      (
-        [String]
+        [String[]]
         $InnerUri,
         [String]
         $InnerPath,
@@ -126,7 +126,11 @@ Function ScrapeWebPages{
         $uris = Get-Content $InnerPath
      }
      Else{
-        $uris += $InnerUri 
+        If($InnerUri.GetType() -eq $uris.GetType()){
+            $uris = $InnerUri
+        } Else {            
+            $uris += $InnerUri 
+        }
      }
 
     #For saving data, we make an array of hashtables. Each hashtable contains a car's data
