@@ -167,9 +167,11 @@ Function ScrapeWebPages{
         Try{
             $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
         } Catch{
+            Write-Error "Parsing failed badly"
             Continue
         }
         If($elements -eq $null -or $elements.innerText -eq ''){
+            Write-Host "Parsing succeeded but not valueable data found"
             Continue
         }
         $dataTable += @{}
@@ -221,7 +223,7 @@ Function GetData-FromFiles{
      $outputData = @()
 
      Get-ChildItem $Path | ForEach{
-        Write-Host "Reading $_"
+        Write-Host "Reading in $_"
         $currentCarData = Import-Clixml -Path "$Path$_"
         $outputData += $currentCarData        
      }
@@ -250,7 +252,7 @@ If($UseSaved){
 If(!$data){
     Throw "No data to process."
 }
-Write-Host "Creating output html"
+Write-Host "Processing and creating output"
 & .\compare.ps1 -Data $data #returns html
 
 Write-Host 'Done'

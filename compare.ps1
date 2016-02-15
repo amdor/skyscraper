@@ -29,7 +29,7 @@ Function Get-ValueOfCars{
   $carWorthTable = @{}
 
   ForEach($carData in $Data){
-    Write-Host "Getting value of $($carData['CarUri'])"
+    Write-Host "Getting value of $($carData['CarUri']) (analyzing data)"
     #Gets numeric value
     [regex]$wantedExpression = "^\d+"
     $localWorthsTable = @{}
@@ -141,44 +141,24 @@ Function Get-ValueOfCars{
 //            \\//      \\||//   |/   
 #>
 
- $htmlContent = "<!DOCTYPE html>
+#NOTE: be careful around line endings and encoding
+#http://stackoverflow.com/questions/30271888/unexpected-illegal-token-in-javascript-from-cdn-scripts-contains-only-garbled
+
+ $htmlFrame = "<!DOCTYPE html>
+<html>
 <head>
-   <script src=`"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js`">
-            `$(`"table`").width(`$(window).width());
-   </script>
-   <style>
-        table {
-            text-align: left;
-            font-size: 12px;
-            font-family: verdana;
-            background: #c0c0c0;
-        }
-
-        table thead, #key, table thead a {
-            text-align: center;
-            vertical-align: middle;
-            background: #c0c0c0;
-            color: white;
-        }
-
-        table tbody tr {
-            background: #f0f0f0;
-        }
-
-        td, thead {
-            border: 1px solid white;
-            word-wrap: break-word;
-            min-width: 50px
-        }
-
-        #key {
-            width: 50px;
-        }
-   </style>
+  <meta charset=`"utf-8`">
+  <meta name=`"viewport`" content=`"width=device-width, initial-scale=1`">
+  <link rel=`"stylesheet`" href=`"http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css`">
+  <script src=`"https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js`"></script>
+  <script src=`"http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js`"></script>
 </head>
 
-<body>
-    <table>"
+<body>"
+$htmlContent = "<div class=`"container`">
+<div class=`"row`">
+    <div class=`"col-xs-6 col-md-4`">Placeholder</div>
+    <div class=`"col-xs-12 col-sm-6 col-md-8`">`n`t<table class=`"table table-hover`">`n"
 
 #Get ALL keys(uniquely) and make the table head with car names and their links
 #NOTE: valueArray is ordered and that is why everywhere this array is used for the iteration.
@@ -193,7 +173,7 @@ For($i = 0; $i -lt $Data.Count; $i++){
 }
 
 $tableHeader = "`n        <thead>`n"
-$tableHeader += "          <tr><td></td>`n"
+$tableHeader += "          <tr><th></th>`n"
 $i = 0;
 For($i = 0; $i -lt $valueArray.Count; $i++){
      $carUri = $valueArray[$i].Name
@@ -205,7 +185,7 @@ For($i = 0; $i -lt $valueArray.Count; $i++){
     }
     #Making the table header
     $carName = ($carData['CarUri'].split('/') | Select -Last 1).split('_') | Select -First 2
-    $tableHeader += "         <td><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($([string]$carName[1]).ToUpper())</td>`n"
+    $tableHeader += "         <th><a href=$($carData['CarUri'])>" + ([string]$carName[0]).ToUpper() + " $($([string]$carName[1]).ToUpper())</th>`n"
 }
 $tableHeader += "        </tr>`n     </thead>`n"
 
@@ -217,7 +197,7 @@ $carParameterNames.Remove('CarUri')
 $htmlContent += $tableHeader + "        <tbody>`n"
 ForEach($paramName in $carParameterNames){
     $htmlContent += "          <tr>`n"
-    $htmlContent += "           <td id=`"key`">$paramName</td>`n"
+    $htmlContent += "           <td name=`"key`">$paramName</td>`n"
     #for every car
     For($i = 0; $i -lt $valueArray.Count; $i++){
         $carUri = $valueArray[$i].Name
@@ -236,12 +216,14 @@ $htmlContent += "          <tfoot><tr>`n"
 $htmlContent += "           <td id=`"key`">Calculated value</td>`n"
 
 For($i = 0; $i -lt $valueArray.Count; $i++){
-    $htmlContent += "           <td>{0:N0}" -f $($valueArray[$i].Value) + "</td>"
+    $htmlContent += "           <td>{0:N0}" -f $($valueArray[$i].Value) + "</td>`n"
 }
 $htmlContent += "          </tfoot></tr>`n"
 
 #Finish up
-$htmlContent+= "`t</table>`n</body>`n</html>"
-$htmlContent | Out-File ".\output\compare.html"
-$htmlContent #return
+$htmlFrame += $htmlContent
+$htmlFrame += "`t`t</table>`n`t</div>`n</div>`n</div>`n</body>`n</html>"
+Write-Host "Saving html and passing back"
+$htmlFrame | Out-File -Encoding utf8 ".\output\compare.html"
+[system.text.encoding]::UTF8.GetString([system.text.encoding]::UTF8.GetBytes($htmlContent)) #return encoded string
 Exit
