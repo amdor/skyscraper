@@ -157,8 +157,7 @@ Function Get-ValueOfCars{
 <body>"
 $htmlContent = "<div class=`"container`">
 <div class=`"row`">
-    <div class=`"col-xs-6 col-md-4`">Placeholder</div>
-    <div class=`"col-xs-12 col-sm-6 col-md-8`">`n`t<table class=`"table table-hover`">`n"
+    <div class=`"col-xs-12 col-sm-6 col-md-10`">`n`t<table class=`"table table-hover`">`n"
 
 #Get ALL keys(uniquely) and make the table head with car names and their links
 #NOTE: valueArray is ordered and that is why everywhere this array is used for the iteration.

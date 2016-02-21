@@ -3,7 +3,7 @@
 Listens to localhost:8089. If hears any POST request, repsponse them with the proper html content 
 given back by the other powershell function. Waits for car urls in the post body, separated by new
 line character.
-8 urls are processed at maximum.
+10 urls are processed at maximum.
 .NOTES
 Author: Zsolt Deak, 2015.12
 #>
@@ -32,9 +32,10 @@ function Process-RequestsAsync{
         $readCounter = 0
         $uris = @()
         #if count is less than readCounter, it means las read was unsuccessfull
-        While(($uris.Count -eq $readCounter) -and ($readCounter -lt 8)){
+        While(($uris.Count -eq $readCounter) -and ($readCounter -lt 10)){
             $readCounter++
             $newLine = $reader.ReadLine()
+            Write-Host "Line read " + $newLine
             if($newLine){
                 $uris += $newLine
             }
@@ -47,10 +48,12 @@ function Process-RequestsAsync{
         $response.ContentLength64 = $buffer.Length
         [System.IO.Stream]$output = $response.OutputStream
         $output.Write($buffer,0,$buffer.Length)
+        $response.StatusCode = 200
 
-        #You must close the output stream.
+        #Must close the output stream.
         $output.Close()
     } Else{
+        Write-Host "No content found"
         $response.StatusCode = 400
         $response.OutputStream.Close()
     }
@@ -67,12 +70,13 @@ function Process-Requests{
 
 #MAIN
 try{
+#stops one request after stop sign
     if($Host.UI.RawUI.KeyAvailable -and (3 -eq  
         [int]$Host.UI.RawUI.ReadKey("AllowCtrlC,IncludeKeyUp,NoEcho").Character)){
          Write-Host "CTRL+C read"
     }
 
-    $url = 'http://localhost:8089/'
+    $url = 'http://+:8089/'
     $listener = New-Object System.Net.HttpListener
     $listener.Prefixes.Add($url)
     $listener.Stop()
