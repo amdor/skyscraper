@@ -250,7 +250,8 @@ If($UseSaved){
 }
 
 If(!$data){
-    Throw "No data to process."
+    Write-Error "No data to process."
+    Exit
 }
 Write-Host "Processing and creating output"
 & .\compare.ps1 -Data $data #returns html
