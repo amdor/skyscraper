@@ -10,7 +10,7 @@ $doc = $null
 
 
 $doc = Invoke-WebRequest -Uri $uri -Method Get
-$maxIter = 100
+$maxIter = 10
 
 For($i = 0; $i -lt $maxIter; $i++){
     $beforeTime = (Get-Date)

@@ -36,7 +36,13 @@ Param
     $UseSaved
  ) 
 
-$Script:TESTMODE = $false #testmode alters behavior, doesn't use cached data for instance
+$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance, or saves car pages
+
+#The folder for the xmls, if doesn't exist, we create it
+$Script:outFolder = '.\output\data\'
+
+#The folder for the car pages if TESTMODE is enabled
+$Script:outPageFolder = '.\output\pages\'
 
 
 <#Navigating to the given url with IE object or with
@@ -109,9 +115,6 @@ Function ScrapeWebPages{
         $InnerUri = $Uri
      }
 
-     #The folder for the xmls, if doesn't exist, we create it
-     $outFolder = '.\output\data\'
-
      If(!(Test-Path $outFolder))
      {
         New-Item $outFolder -ItemType directory > $null
@@ -160,7 +163,15 @@ Function ScrapeWebPages{
         #Else
         Write-Host "Navigating to "$url
         #Distinguish between compatibility mode and normal
-        If($compatibilityMode){ $doc = Navigate -Url $url -IsCompatibilityMode } Else{ $doc = Navigate -Url $url }        
+        If($compatibilityMode){ $doc = Navigate -Url $url -IsCompatibilityMode }
+        Else{ $doc = Navigate -Url $url } 
+        
+        #in test mode, the pages are saved
+        If( $TESTMODE ) {
+            $htmlName = $xmlName
+            Out-File -FilePath "$Script:outPageFolder$htmlName.html" -InputObject $doc.Content
+            Write-Host "HTML content is saved to $outPageFolder$htmlName.html"
+        }       
         
         #Parse data
         Write-Host "Parsing data..."

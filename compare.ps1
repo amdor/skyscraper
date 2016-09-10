@@ -224,5 +224,6 @@ $htmlFrame += $htmlContent
 $htmlFrame += "`t`t</table>`n`t</div>`n</div>`n</div>`n</body>`n</html>"
 Write-Host "Saving html and passing back"
 $htmlFrame | Out-File -Encoding utf8 ".\output\compare.html"
-[system.text.encoding]::UTF8.GetString([system.text.encoding]::UTF8.GetBytes($htmlContent)) #return encoded string
+#return encoded string for rest service
+[system.text.encoding]::UTF8.GetString([system.text.encoding]::UTF8.GetBytes($htmlContent)) 
 Exit

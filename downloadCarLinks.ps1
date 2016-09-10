@@ -30,7 +30,8 @@ Function Gather-Links{
     )
 
     Write-Host "Navigating to url $url"
-    [Microsoft.PowerShell.Commands.HtmlWebResponseObject]$Script:doc = Try { Invoke-WebRequest -Uri $url -Method Get } Catch { $_.Exception.Response }
+    $Script:doc = Try { Invoke-WebRequest -Uri $url -Method Get } 
+    Catch { $_.Exception.Response }
     #Response is OK, and yet to be html
     if(($Script:doc.StatusCode -ne 200) -or !($Script:doc.Headers['Content-Type'] -like '*text/html*') )
     {
@@ -83,18 +84,24 @@ If(Test-Path $outfile){
     Remove-Item $outfile
 }
 
-Gather-Links
+#Gather-Links
 $loopCounter = 1
-$nextPageRegex = [regex]"class=`"lapozas`".{160,250}Következõ oldal"
-While(($loopCounter -lt $Depth) -and ($nextPage = (($nextPageRegex.Match($Script:doc.Content).Value -Split "href=`"")[1] -Split "`" title")[0])){#($Script:doc.ParsedHtml.GetElementsByTagName("A") | Where-Object title -eq "Következõ oldal").href)){
+$nextPage = $Uri
+
+While( $loopCounter -lt $Depth){
     Try{
         Write-Host "Depth $loopCounter done"
-        Gather-Links -url "www.hasznaltauto.hu$nextPage"#$($nextPage[0].Substring(6, $nextPage[0].Length-6))"
         $loopCounter++
+        Gather-Links -url $nextPage
         Write-Host "Getting next page's url"
+        if( $nextPage -match '[1-9]{2}$') {
+            $nextPage = $nextPage.Substring(0,$nextPage.Length-2) + ([convert]::ToInt32($nextPage.Substring($nextPage.Length-2, 2), 10 ) + 1 )
+        } else {
+            $nextPage = $nextPage.Substring(0,$nextPage.Length-1) + ([convert]::ToInt32($nextPage.Substring($nextPage.Length-1, 1), 10 ) + 1 )
+        }
     } Catch{
         Write-Host "Something went wrong.`nInner exception: $($_.Exception)"
-        Break
+        Continue
     }
 }
 

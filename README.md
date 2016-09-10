@@ -6,3 +6,4 @@ This skyscraper app is basically (yet) a Powershell project for automated compar
 ##Version 1.0
 V1.0 is capable of comparing cars, saving their data, computing a value index (using my algorithm) and showing the results on a generated HTML page with a link refering to the original cars.
 ###Usage
+See .ps1 file usages help (Get-Help), or the comment at the start of the files.
