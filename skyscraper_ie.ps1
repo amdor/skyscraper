@@ -176,7 +176,12 @@ Function ScrapeWebPages{
         #Parse data
         Write-Host "Parsing data..."
         Try{
-            $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
+            $elements = $null
+            If( $compatibilityMode ) {
+                $elements = $doc.GetElementsByTagName("TABLE") | Where-Object {$_.outerHTML -like '*class="hirdetesadatok"*'}
+            } Else {
+                $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
+            }
         } Catch{
             Write-Error "Parsing failed badly"
             Continue
@@ -186,12 +191,20 @@ Function ScrapeWebPages{
             Continue
         }
         $dataTable += @{}
-        $elements.innerText.split(“`r`n”) | ForEach-Object{
+        $elementText = ""
+        If( $compatibilityMode ) {
+            $elementText = $elements.outerText
+        } Else {
+            $elementText = $elements.innerText
+        }
+        $elementText.split(“`r`n”) | ForEach-Object{
             # process line
             if($_ -like "*:*")
             {
                 $tmp = $_ -Split ":"
-                $tmp = $tmp.Trim() #remove leading and trailing spaces
+                For( $index = 0; $index -lt 2; $index++ ) {
+                    $tmp[$index] = $tmp[$index].Trim()#remove leading and trailing spaces
+                }
                 $dataTable[$carIndex].Add($tmp[0], $tmp[1])
             }
         }

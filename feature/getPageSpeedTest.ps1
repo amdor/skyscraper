@@ -1,6 +1,8 @@
 ﻿Param(
     [String]
-    $Uri
+    $Uri,
+    [string]
+    $Path
 )
 
 $scriptStartTime = (Get-Date)
@@ -10,36 +12,46 @@ $doc = $null
 $doc2 = $null
 
 
-$maxIter = 100
+$maxIter = 1
+$uris = $Uri
 
-#webrequest
-For($i = 0; $i -lt $maxIter; $i++){
-    $beforeTime = (Get-Date)
-    $doc = Invoke-WebRequest -Uri $uri -Method Get
-    $parseSumTime += (Get-Date) - $beforeTime
+if($Path -and (Test-Path $Path -PathType Leaf)){
+    $uris = Get-Content $Path
 }
 
-Write-Host "Invoke-WebRequest average time = $($parseSumTime.totalseconds / $maxIter)"
+ForEach($uri in $uris){
+    #webrequest
+    For($i = 0; $i -lt $maxIter; $i++){
+        $beforeTime = (Get-Date)
+        $doc = Invoke-WebRequest -Uri $uri -Method Get
+        $parseSumTime += (Get-Date) - $beforeTime
+    }
+}
+
+Write-Host "Invoke-WebRequest average time = $($parseSumTime.totalseconds / ($maxIter*$uris.Count) )"
 
 #restmethod
 $parseSumTime = 0
-For($i = 0; $i -lt $maxIter; $i++){
-    $beforeTime = (Get-Date)
-    $doc2 = Invoke-RestMethod -Uri $uri -Method Get
-    $parseSumTime += (Get-Date) - $beforeTime
+ForEach($uri in $uris){
+    For($i = 0; $i -lt $maxIter; $i++){
+        $beforeTime = (Get-Date)
+        $doc2 = Invoke-RestMethod -Uri $uri -Method Get
+        $parseSumTime += (Get-Date) - $beforeTime
+    }
 }
 
-Write-Host "Rest average time = $($parseSumTime.totalseconds / $maxIter)"
+Write-Host "Rest average time = $($parseSumTime.totalseconds / ($maxIter*$uris.Count) )"
 
 #webrequest without IE
 $parseSumTime = 0
-For($i = 0; $i -lt $maxIter; $i++){
-    $beforeTime = (Get-Date)
-    $doc2 = Invoke-WebRequest -Uri $uri -Method Get -UseBasicParsing
-    $parseSumTime += (Get-Date) - $beforeTime
+ ForEach($uri in $uris){
+    For($i = 0; $i -lt $maxIter; $i++){
+        $beforeTime = (Get-Date)
+        $doc2 = Invoke-WebRequest -Uri $uri -Method Get -UseBasicParsing
+        $parseSumTime += (Get-Date) - $beforeTime
+    }
 }
-
-Write-Host "WebRequest non-IE average time = $($parseSumTime.totalseconds / $maxIter)"
+Write-Host "WebRequest non-IE average time = $($parseSumTime.totalseconds / ($maxIter*$uris.Count) )"
 
 
 Write-Host 'Done'
