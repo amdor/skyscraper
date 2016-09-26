@@ -1,9 +1,10 @@
 <#.
 .SYNOPSIS
 This script outputs a list of urls. Gets every cars' link from the page given and every page after
-that(until depth is reached), navigating with the next page button amongst them.
+that(until depth is reached), navigating by url tampering.
 Depth parameter tells how many pages should the script scrape before stoping. If there is no more following pages, 
 but depth number of pages are not yet visited, the script stops.
+Uses 10 results per page view
 .PARAMETER Uri
 The starting page of links.
 .PARAMETER Depth
@@ -38,6 +39,11 @@ Function Gather-Links{
         Throw "Inproducable server response" #exit
     }
 
+    #Guarantee noverflow (after the last page url tampering causes redirect to page 1)
+    If($Script:doc.BaseResponse.ResponseUri.OriginalString -ne $nextPage) {
+        Throw "Tampering overflow"
+    }
+
      <#Parse data and get the links
     Write-Host "Parsing results page..."
     Try{
@@ -59,11 +65,12 @@ Function Gather-Links{
     }
     #>
     #Grab the links from the page with regex
+    #Must be -le to save the 10th link as well
     [regex]$linkRegex = "http://www.hasznaltauto.hu/auto/(.*/.*)*`">"
     Write-Host "Finding and saving links to $outfile..."
     $links = $linkRegex.Matches($Script:doc.Content)
     $link = $links[0]
-    For($i = 1; $i -lt $links.Count; $i++){
+    For($i = 1; $i -le $links.Count; $i++){
         If($links[$i].Value -ne $link.Value){
             Out-File $outfile -InputObject $link.Value.Substring(0,$link.Length-2) -Append
         }
@@ -85,7 +92,7 @@ If(Test-Path $outfile){
 }
 
 #Gather-Links
-$loopCounter = 1
+$loopCounter = 0
 $nextPage = $Uri
 
 While( $loopCounter -lt $Depth){
@@ -99,9 +106,17 @@ While( $loopCounter -lt $Depth){
         } else {
             $nextPage = $nextPage.Substring(0,$nextPage.Length-1) + ([convert]::ToInt32($nextPage.Substring($nextPage.Length-1, 1), 10 ) + 1 )
         }
-    } Catch{
-        Write-Host "Something went wrong.`nInner exception: $($_.Exception)"
-        Continue
+    } Catch {
+        Switch -Wildcard ($Error[0].Exception) {
+            '*Tampering overflow*' {
+                Write-Host "Reached last page, stopping...."
+                #Hack, since break cannot be used here
+                $loopCounter = $Depth
+            }
+            Default {
+                Write-Host "Something went wrong.`nInner exception: $($Error[0].Exception)"
+            }
+        }
     }
 }
 

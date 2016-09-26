@@ -47,6 +47,8 @@ $Script:outPageFolder = '.\output\pages\'
 
 <#Navigating to the given url with IE object or with
 the newer PS method Invoke-Webrequest
+
+@Return 
 #>
 Function Navigate{
 
@@ -74,8 +76,11 @@ Function Navigate{
                     Continue
                 }
             }
-                Write-Host "Navigating to URI is done"
+            Write-Host "Navigating to URI is done"
             $doc=$ie.Document
+            #close and release reference
+            $ie.Quit()
+            $ie = $null
         } Else{
             #$doc = & .\feature\skyscraper.ps1 -Uri $url
             #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
@@ -229,14 +234,14 @@ Function ScrapeWebPages{
 <#This function loads the car datas (previously saved) and gives it back as
 .PARAMETER Path
 The path to the folder where the xml files are, containing car data.
-Defaults to .\output\data\
+Defaults to .\output\data\, which is the global output folder for data for this script
 #>
 Function GetData-FromFiles{
 
       Param
      (
         [String]
-        $Path = ".\output\data\"
+        $Path = $Script:outFolder
      )
 
      If( !(Test-Path $Path -PathType Container) ){

@@ -21,7 +21,15 @@ function Process-RequestsAsync{
         $Context
      )
     $innerContext = $Context
-    $response = $context.Response
+    $response = $innerContext.Response
+
+    #Check method
+    If($Context.Request.HttpMethod -ne "POST") {
+        Write-Host "Method not allowed"
+        $response.StatusCode = 405
+        $response.OutputStream.Close()
+        Return
+    }
 
     #Construct a response.
     If($innerContext.Request.HasEntityBody){
@@ -77,7 +85,7 @@ try{
     }
 
     $url = 'http://+:8089/'
-    $listener = New-Object System.Net.HttpListener
+    $Script:listener = New-Object System.Net.HttpListener
     $listener.Prefixes.Add($url)
     $listener.Stop()
     $listener.Start()
