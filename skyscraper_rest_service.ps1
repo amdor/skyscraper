@@ -91,13 +91,16 @@ try{
     $listener.Start()
 
     Write-Host "Started listening at $url"
-
     While($listener.IsListening){
-       <#[System.Management.Automation.PowerShell]$psInstance = [System.Management.Automation.PowerShell]::Create()
-       [void]$psInstance.AddCommand("Process-Requests", $true)
-       $psInstance.Invoke()#>
-       Write-Host "Waiting for request"
-       Process-Requests
+        Try {
+            <#[System.Management.Automation.PowerShell]$psInstance = [System.Management.Automation.PowerShell]::Create()
+            [void]$psInstance.AddCommand("Process-Requests", $true)
+            $psInstance.Invoke()#>
+            Write-Host "Waiting for request"
+            Process-Requests
+        } Catch {
+            Continue
+        }
     }
 
     #Clean up
