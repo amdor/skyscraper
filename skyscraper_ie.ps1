@@ -72,7 +72,7 @@ Function Navigate{
                 $i++
                 if($i -ge 32)
                 {
-                    Write-Error "Navigation timed out"
+                    Write-Host "Navigation timed out" -ForegroundColor Red
                     Continue
                 }
             }
@@ -125,6 +125,11 @@ Function ScrapeWebPages{
         New-Item $outFolder -ItemType directory > $null
      }
 
+     If(!(Test-Path $outPageFolder))
+     {
+        New-Item $outPageFolder -ItemType directory > $null
+     }
+
      #Test if Uri points at a valid file
      $uris = @()
      If($InnerPath){
@@ -147,7 +152,7 @@ Function ScrapeWebPages{
     ForEach($url in $uris){
         #Protection against wrong websites
         If(!( ($url -Split '/' | Select -Index 2) -like 'www.hasznaltauto.hu')){
-            Write-Error "$url is not pointing at www.hasznaltauto.hu, skipping"
+            Write-Host "$url is not pointing at www.hasznaltauto.hu, skipping" -ForegroundColor Red
             Continue
         }
         #Searching for matching saved car data A.K.A. caching, if not in testmode, there is cached data
@@ -188,7 +193,7 @@ Function ScrapeWebPages{
                 $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
             }
         } Catch{
-            Write-Error "Parsing failed badly"
+            Write-Host "Parsing failed badly" -ForegroundColor Red
             Continue
         }
         If($elements -eq $null -or $elements.innerText -eq ''){
@@ -245,7 +250,7 @@ Function GetData-FromFiles{
      )
 
      If( !(Test-Path $Path -PathType Container) ){
-        Write-Error 'The given path is not correct, not pointing at a folder, or the folder does not exist'
+        Write-Host 'The given path is not correct, not pointing at a folder, or the folder does not exist' -ForegroundColor Red
         Return
      }
 
@@ -279,12 +284,12 @@ If($UseSaved){
 }
 
 If(!$data){
-    Write-Error "No data to process."
-    Exit
+    Write-Host "No data to process." -ForegroundColor Red
+    Return $null
 }
 Write-Host "Processing and creating output"
 & .\compare.ps1 -Data $data #returns html
 
 Write-Host 'Done'
 Write-Host $(((Get-Date) - $scriptStartTime).totalseconds) 'seconds elapsed'
-Exit
+Return
