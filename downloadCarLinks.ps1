@@ -44,26 +44,6 @@ Function Gather-Links{
         Throw "Tampering overflow"
     }
 
-     <#Parse data and get the links
-    Write-Host "Parsing results page..."
-    Try{
-        $elements = $Script:doc.ParsedHtml.GetElementsByTagName("DIV") | Where-Object className -contains "talalati_lista_head"
-    } Catch{
-        Write-Host "Parsing failed"
-        Continue
-    }
-
-    #Use only needed divs and get their link
-    Write-Host "Finding and saving links to $outfile..."
-    [regex]$regExpression = "http.*`""
-    ForEach($element in $elements){
-        $link = $regExpression.Match($element.innerHtml).Value
-        If($link){
-            Out-File $outfile -InputObject $link.Substring(0,$link.Length-1) -Append
-        }
-        $link = $null   
-    }
-    #>
     #Grab the links from the page with regex
     #Must be -le to save the 10th link as well
     [regex]$linkRegex = "http://www.hasznaltauto.hu/auto/(.*/.*)*`">"

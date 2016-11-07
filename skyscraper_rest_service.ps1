@@ -81,7 +81,7 @@ function Process-RequestsAsync {
 function Process-Requests {
     #listener waits until request comes in, here
     $context = $listener.GetContext()
-    Process-RequestsAsync -Context $context #TODO  Make it async in PS (does not work with powershell object and start-job)
+    Process-RequestsAsync -Context $context #TODO  Make it async in PS 
 }
 
 

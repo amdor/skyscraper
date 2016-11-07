@@ -25,6 +25,7 @@ Author: Zsolt Deak, 2015.07.09
 
 Param
  (
+    [ValidatePattern('^http:\/\/www.hasznaltauto.hu\/auto\/([a-zA-Z]|\d|\/|_|-|\.)+$')]
     [Parameter(Mandatory=$true, ParameterSetName = "Online")]
     [String[]]
     $Uri,
@@ -36,7 +37,7 @@ Param
     $UseSaved
  ) 
 
-$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance, or saves car pages
+$Script:TESTMODE = $false #testmode alters behavior, doesn't use cached data for instance, or saves car pages
 
 #The folder for the xmls, if doesn't exist, we create it
 $Script:outFolder = '.\output\data\'
@@ -78,9 +79,9 @@ Function Navigate{
             }
             Write-Host "Navigating to URI is done"
             $doc=$ie.Document
-            #close and release reference
-            $ie.Quit()
-            $ie = $null
+            #close and release reference, also release $doc props, TODO workaround
+            #$ie.Quit()
+            #$ie = $null
         } Else{
             #$doc = & .\feature\skyscraper.ps1 -Uri $url
             #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
@@ -190,7 +191,12 @@ Function ScrapeWebPages{
             If( $compatibilityMode ) {
                 $elements = $doc.GetElementsByTagName("TABLE") | Where-Object {$_.outerHTML -like '*class="hirdetesadatok"*'}
             } Else {
-                $elements = $doc.ParsedHtml.GetElementsByTagName("TABLE") | Where-Object className -eq "hirdetesadatok"
+                $tables = $doc.ParsedHtml.GetElementsByTagName("TABLE")
+                ForEach($item in $tables){
+                    if($item.className -eq "hirdetesadatok"){
+                        $elements = $item
+                    }
+                }
             }
         } Catch{
             Write-Host "Parsing failed badly" -ForegroundColor Red
