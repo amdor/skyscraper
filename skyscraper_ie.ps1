@@ -37,13 +37,16 @@ Param
     $UseSaved
  ) 
 
-$Script:TESTMODE = $false #testmode alters behavior, doesn't use cached data for instance, or saves car pages
+$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance, or saves car pages
 
 #The folder for the xmls, if doesn't exist, we create it
 $Script:outFolder = '.\output\data\'
 
 #The folder for the car pages if TESTMODE is enabled
 $Script:outPageFolder = '.\output\pages\'
+
+#must have it globallit 'till find the way to keep the the and close the app
+$Script:ie = New-Object -ComObject InternetExplorer.Application
 
 
 <#Navigating to the given url with IE object or with
@@ -63,40 +66,39 @@ Function Navigate{
     )
 
      If($compatibilityMode){
-            $ie=New-Object -ComObject InternetExplorer.Application
-            Write-Host "$url"
-            $ie.Navigate($url)
-            $i = 0
-            while ($ie.busy) {
-	            Start-Sleep -Milliseconds 600
-                Write-Host "Navigating to URI $i"
-                $i++
-                if($i -ge 32)
-                {
-                    Write-Host "Navigation timed out" -ForegroundColor Red
-                    Continue
-                }
-            }
-            Write-Host "Navigating to URI is done"
-            $doc=$ie.Document
-            #close and release reference, also release $doc props, TODO workaround
-            #$ie.Quit()
-            #$ie = $null
-        } Else{
-            #$doc = & .\feature\skyscraper.ps1 -Uri $url
-            #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
-            $doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
-            #Response is OK, and yet to be html
-            if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
+        Write-Host "$url"
+        $ie.Navigate($url)
+        $i = 0
+        while ($ie.busy) {
+	        Start-Sleep -Milliseconds 10
+            Write-Host "Navigating to URI $i"
+            $i++
+            if($i -ge 300)
             {
-                Write-Host "Wrong response: $($doc.StatusCode), url $url"
-                Start-Sleep -Milliseconds 1000
+                Write-Host "Navigation timed out" -ForegroundColor Red
                 Continue
             }
-
-            Write-Host 'Done downloading page data'
         }
-        $doc
+        Write-Host "Navigating to URI is done"
+        $doc=$ie.Document
+        #close and release reference, also release $doc props, TODO workaround
+        #$ie.Quit()
+        #$ie = $null
+    } Else{
+        #$doc = & .\feature\skyscraper.ps1 -Uri $url
+        #GET request to the given uri, the results are saved to dest and returned to the pipeline as well
+        $doc = Try { Invoke-WebRequest -Uri $url -Method Get <#-OutFile $Dest -PassThru -UseBasicParsing#> } Catch { $_.Exception.Response }
+        #Response is OK, and yet to be html
+        if(($doc.StatusCode -ne 200) -or !($doc.Headers['Content-Type'] -like '*text/html*') )#$IndexPage.Headers -contains 'text/html') )
+        {
+            Write-Host "Wrong response: $($doc.StatusCode), url $url"
+            Start-Sleep -Milliseconds 1000
+            Continue
+        }
+
+        Write-Host 'Done downloading page data'
+    }
+    $doc
 }
 
  <#This function walks through all urls, downloads their data, saves them into xmls and returns 
@@ -203,7 +205,7 @@ Function ScrapeWebPages{
             Continue
         }
         If($elements -eq $null -or $elements.innerText -eq ''){
-            Write-Host "Parsing succeeded but not valueable data found"
+            Write-Host "Parsing succeeded but not valueable data found" -ForegroundColor Red
             Continue
         }
         $dataTable += @{}
