@@ -34,6 +34,17 @@ For($i = 0; $i -lt $maxIter; $i++){
 
 Write-Host "Pipe parsing average time = $($parseSumTime.totalseconds / $maxIter)"
 
+$parseSumTime = 0
+$doc = Invoke-WebRequest -Uri $uri -Method Get -UseBasicParsing
+[regex]$regex = '<table class="hirdetesadatok">(.*?|\r|\n)*<\/table>'
+For($i = 0; $i -lt $maxIter; $i++){
+    $beforeTime = (Get-Date)
+    $elements = $regex.Match($doc.Content).Value
+    $parseSumTime += (Get-Date) - $beforeTime
+}
+
+Write-Host "Non-pipe parsing average time with BasicParsing ON = $($parseSumTime.totalseconds / $maxIter)"
+
 
 Write-Host 'Done'
 Write-Host $(((Get-Date) - $scriptStartTime).totalseconds) 'seconds elapsed'
