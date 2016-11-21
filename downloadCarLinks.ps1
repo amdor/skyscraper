@@ -81,7 +81,7 @@ While( $loopCounter -lt $Depth){
         $loopCounter++
         Gather-Links -url $nextPage
         Write-Host "Getting next page's url"
-        if( $nextPage -match '[1-9]{2}$') {
+        if( $nextPage -match '[0-9]{2}$') {
             $nextPage = $nextPage.Substring(0,$nextPage.Length-2) + ([convert]::ToInt32($nextPage.Substring($nextPage.Length-2, 2), 10 ) + 1 )
         } else {
             $nextPage = $nextPage.Substring(0,$nextPage.Length-1) + ([convert]::ToInt32($nextPage.Substring($nextPage.Length-1, 1), 10 ) + 1 )

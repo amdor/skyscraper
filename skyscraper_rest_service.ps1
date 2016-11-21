@@ -16,6 +16,8 @@ Process requests (yet to be async) by sending them forward to the function
 The HttpListenerContext from the request that is caught
 #>
 
+$Script:contenxt = $null
+
 function Process-RequestsAsync {
      Param( 
         [System.Net.HttpListenerContext]
@@ -43,7 +45,7 @@ function Process-RequestsAsync {
 
         $readCounter = 0
         $uris = @()
-        #if count is less than readCounter, it means las read was unsuccessfull
+        #if count is less than readCounter, it means last read was unsuccessfull
         While(($uris.Count -eq $readCounter) -and ($readCounter -lt 10)){
             $readCounter++
             $newLine = $reader.ReadLine()
@@ -53,27 +55,38 @@ function Process-RequestsAsync {
             }
         }
         Write-Host "Post body content recieved $uris"
-        $responseString =  & .\skyscraper_ie.ps1 -Uri $uris
-        #no valid content recieved --> 4xx client side error
-        If(!$responseString) {
-            $response.StatusCode = 418
-            $response.StatusDescription = "I'm a teapot"
+        Try {
+            $responseString =  & .\skyscraper_ie.ps1 -Uri $uris
+            #no valid content recieved --> 4xx client side error
+            If([string]::IsNullOrWhiteSpace($responseString)) {
+                $response.StatusCode = 418
+                $response.StatusDescription = "I'm a teapot"
+                $response.Close()
+                Return
+            }
+            $buffer = [System.Text.Encoding]::UTF8.GetBytes($responseString)
+
+            #Get a response stream and write the response to it.
+            $response.ContentLength64 = $buffer.Length
+            [System.IO.Stream]$output = $response.OutputStream
+            $output.Write($buffer,0,$buffer.Length)
+            $response.StatusCode = 200
+
+            #Must close the output stream.
+            $output.Close()
+            $response.Close()
+         } Catch [System.Management.Automation.ParameterBindingException] {
+            $response = $context.Response
+            $response.StatusDescription = "No valid content found"
+            $response.StatusCode = 404
+            $response.ContentLength64 = 0
+            $response.Close()
             Return
         }
-        $buffer = [System.Text.Encoding]::UTF8.GetBytes($responseString)
-
-        #Get a response stream and write the response to it.
-        $response.ContentLength64 = $buffer.Length
-        [System.IO.Stream]$output = $response.OutputStream
-        $output.Write($buffer,0,$buffer.Length)
-        $response.StatusCode = 200
-
-        #Must close the output stream.
-        $output.Close()
     } Else{
         Write-Host "No content found"
         $response.StatusCode = 400
-        $response.OutputStream.Close()
+        $response.Close()
     }
 }
 
@@ -134,12 +147,11 @@ try {
             Write-Host "Waiting for request"
             Process-Requests
         } Catch {
-            $response = $listener.GetContext().Response
+            Write-Host "Exception  $($_.Exception)" -ForegroundColor Red
+            $response = $context
             $response.StatusCode = 500
             $response.OutputStream.Close()
-           
-            Write-Host "Exception  $($_.Exception)" -ForegroundColor Red
-            Continue
+
         }
     }
 
