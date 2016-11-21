@@ -1,6 +1,6 @@
 <#.
 .SYNOPSIS
-This script compares the properties of the cars and generates an html file presenting the properties and
+This script compares the parameters of the cars and generates an html file presenting the parameters and
 the real worth of the cars as well.
 .PARAMETER Data
 Data of the cars
@@ -77,7 +77,7 @@ Function Get-ValueOfCars{
 
     #Price is calculated from the price and the power if there is no problem (like no power or price data), NOTE: max cap
     $carPrice = 1
-    If($power -gt 14){
+    If($power -gt 14) {
         If($carData['Akciós ár']){
             $carPrice = $carData['Akciós ár'] -replace '\.',''
         } Else{
@@ -89,8 +89,6 @@ Function Get-ValueOfCars{
         } Else{
             $carPrice = 1
         }
-    } Else{
-        $carPrice = 1
     }
     $localWorthsTable.Add('Price', $carPrice)
 
@@ -98,7 +96,7 @@ Function Get-ValueOfCars{
     If($carData['Évjárat']){
         $dateOfProd = $carData['Évjárat']
         If(($dateOfProd -split "/").Count -lt 2){
-            $dateOfProd = [datetime] ($dateOfProd + "/01")
+            $dateOfProd = [datetime] ($dateOfProd + "/12")
         } Else{
             $dateOfProd = [datetime] $dateOfProd
         }
@@ -107,14 +105,14 @@ Function Get-ValueOfCars{
         $monthsOld = $currentDate.Month - $dateOfProd.Month
         #The base poit of car worth loss was http://www.edmunds.com/car-buying/how-fast-does-my-new-car-lose-value-infographic.html
         $priceLossPercent = $monthsOld
-        If(($yearsOld -le 0) -and ($monthsOld -le 0)){
+        If(($yearsOld -le 0) -and ($monthsOld -le 3)){
             $priceLossPercent = 0
         } ElseIf($yearsOld -le 5){
             $priceLossPercent += 11 * ($yearsOld - 1) + 19
         } ElseIf($yearsOld -le 30){
             $priceLossPercent += [math]::Log10($yearsOld - 3) * 10 + 60
         } ElseIf($yearsOld -gt 30){
-            $priceLossPercent += 192 * [math]::Pow([math]::E, (-0.03 * $yearsOld))
+            $priceLossPercent += [math]::Log10($yearsOld - 3) * 10 + 60 - 0.0006* [math]::Pow($yearsOld,3)
         }
         $localWorthsTable.Add('AgeLoss', -$priceLossPercent / 3)
     }
