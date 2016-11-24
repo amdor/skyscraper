@@ -85,7 +85,7 @@ Function Get-ValueOfCars{
         }
         If($carPrice -match $wantedExpression){
             $carPrice = ($power * 500000) / $Matches[0]
-            $carPrice = Measure-Object -Maximum @($carPrice, 10)
+            $carPrice = [math]::Max($carPrice, 10)
         } Else{
             $carPrice = 1
         }
