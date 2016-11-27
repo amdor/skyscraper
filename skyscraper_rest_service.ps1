@@ -16,7 +16,7 @@ Process requests (yet to be async) by sending them forward to the function
 The HttpListenerContext from the request that is caught
 #>
 
-$Script:contenxt = $null
+$Script:context = $null
 
 function Process-RequestsAsync {
      Param( 
@@ -76,7 +76,7 @@ function Process-RequestsAsync {
             $output.Close()
             $response.Close()
          } Catch [System.Management.Automation.ParameterBindingException] {
-            $response = $context.Response
+            $response = $Script:context.Response
             $response.StatusDescription = "No valid content found"
             $response.StatusCode = 404
             $response.ContentLength64 = 0
@@ -93,8 +93,8 @@ function Process-RequestsAsync {
 
 function Process-Requests {
     #listener waits until request comes in, here
-    $context = $listener.GetContext()
-    Process-RequestsAsync -Context $context #TODO  Make it async in PS 
+    $Script:context = $listener.GetContext()
+    Process-RequestsAsync -Context $Script:context #TODO  Make it async in PS 
 }
 
 
@@ -148,7 +148,7 @@ try {
             Process-Requests
         } Catch {
             Write-Host "Exception  $($_.Exception)" -ForegroundColor Red
-            $response = $context
+            $response = $Script:context
             $response.StatusCode = 500
             $response.OutputStream.Close()
 

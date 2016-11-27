@@ -29,6 +29,9 @@ Function Get-ValueOfCars{
   $carWorthTable = @{}
 
   ForEach($carData in $Data){
+    if($carWorthTable.ContainsKey($carData.CarUri)){
+        Continue
+    }
     Write-Host "Getting value of $($carData['CarUri']) (analyzing data)"
     #Gets numeric value
     [regex]$wantedExpression = "^\d+"

@@ -37,7 +37,7 @@ Param
     $UseSaved
  ) 
 
-$Script:TESTMODE = $true #testmode alters behavior, doesn't use cached data for instance, or saves car pages
+$Script:TESTMODE = $false #testmode alters behavior, doesn't use cached data for instance, or saves car pages
 
 #The folder for the xmls, if doesn't exist, we create it
 $Script:outFolder = '.\output\data\'
@@ -152,6 +152,7 @@ Function ScrapeWebPages{
     #For saving data, we make an array of hashtables. Each hashtable contains a car's data
     $dataTable = @()
     $carIndex = 0
+    $uris = $uris | Sort -Unique #make it unique
     ForEach($url in $uris){
         #Protection against wrong websites
         If(!( ($url -Split '/' | Select -Index 2) -like 'www.hasznaltauto.hu')){
