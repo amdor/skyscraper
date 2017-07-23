@@ -1,3 +1,10 @@
 bes/output/
 output/
 src/
+resources/
+.idea/
+test_resource/
+dist/
+tests/__pycache__/
+services/__pycache__/
+skyscraper.egg-info/

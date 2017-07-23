@@ -165,7 +165,7 @@ $htmlContent = "<div class=`"container`">
 [System.Collections.ArrayList]$carParameterNames = @()
 [Object[]]$valueArray = Get-ValueOfCars
 
-#we need an indexer object for accessing by uri the cars in $Data (otherwise the array structure is well enough satisfactory, this is the only excpetion)
+#we need an indexer object for accessing by uri the cars in $Data (otherwise the array structure is well enough satisfactory, this is the only exception)
 $carDataIndexerTable = @{}
 For($i = 0; $i -lt $Data.Count; $i++){
     $car = $Data[$i]
