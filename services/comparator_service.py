@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 from services.constants import CAR_KEY, WORTH_KEY
-from services.value_parser import get_power, get_condition
+from services.value_parser import ValueParser
 
 
 def get_car_value(car_data):
@@ -10,11 +10,11 @@ def get_car_value(car_data):
 	and generates their worth from them.
 	Orders the values descendingly, returns the ordered array, in which each element has a Name and Value property
 	"""
-	power = get_power(car_data)
+	value_parser = ValueParser(car_data)
+	car_worth = value_parser.get_power_value()
+	car_worth += value_parser.get_condition_value()
+	car_worth += value_parser.get_trunk_value()
 
-	condition = get_condition(car_data)
-
-	car_worth = power / 14 + condition
 	return car_worth
 
 
