@@ -1,4 +1,5 @@
 from services.constants import POWER_KEY,CONDITION_KEY, Conditions, TRUNK_KEY
+from services.constants import MASS_KEY
 
 
 class ValueParser:
@@ -6,9 +7,9 @@ class ValueParser:
 	def __init__(self, car_data):
 		self.car_data = car_data
 
-	def __get_first_number(self, string_value):
+	@staticmethod
+	def __get_first_number(string_value):
 		return [int(s) for s in string_value.split() if s.isdigit()][0]
-
 
 	def get_power_value(self):
 		"""
@@ -18,7 +19,6 @@ class ValueParser:
 		:return: the value e.g. 62 or null if power is not present
 		"""
 		return self.__get_first_number(self.car_data.get(POWER_KEY, '0')) / 14
-
 
 	def get_condition_value(self):
 		"""
@@ -37,12 +37,20 @@ class ValueParser:
 		else:
 			return -20
 
-
 	def get_trunk_value(self):
 		"""
 		Presumably trunk space is in liter
-		:return:
+		:return: the value for trunk space
 		"""
 		trunk_space_text = self.car_data.get(TRUNK_KEY, '0')
 		trunk_space_value = self.__get_first_number(trunk_space_text)
-		return trunk_space_value / 150
+		return round(trunk_space_value / 150.0)
+
+	def get_mass_value(self):
+		"""
+		Car's mass in kilograms converted to car worth
+		:return: the value for mass
+		"""
+		mass_text = self.car_data.get(MASS_KEY, '0')
+		mass_value = self.__get_first_number(mass_text)
+		return round(mass_value / 500.0)

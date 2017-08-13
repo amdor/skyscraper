@@ -8,12 +8,13 @@ def get_car_value(car_data):
 	"""
 	This function enumerates through parameters of given car's primary parameters
 	and generates their worth from them.
-	Orders the values descendingly, returns the ordered array, in which each element has a Name and Value property
+	Orders the values to descending, returns the ordered array, in which each element has a Name and Value property
 	"""
 	value_parser = ValueParser(car_data)
 	car_worth = value_parser.get_power_value()
 	car_worth += value_parser.get_condition_value()
 	car_worth += value_parser.get_trunk_value()
+	car_worth += value_parser.get_mass_value()
 
 	return car_worth
 
