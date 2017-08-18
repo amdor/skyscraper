@@ -1,5 +1,5 @@
 from services.constants import POWER_KEY,CONDITION_KEY, Conditions, TRUNK_KEY
-from services.constants import MASS_KEY
+from services.constants import MASS_KEY, SPEEDOMETER_KEY
 
 
 class ValueParser:
@@ -9,7 +9,21 @@ class ValueParser:
 
 	@staticmethod
 	def __get_first_number(string_value):
-		return [int(s) for s in string_value.split() if s.isdigit()][0]
+		"""
+		Parses the first number of a string.
+		:param string_value: string to parse
+		:return: the first number. Space delimited numbers are regarded
+		up to 999 999
+		"""
+		num_str_arr = [s for s in string_value.split() if s.lstrip("-").isdigit()]
+		if len(num_str_arr) > 1:
+			first = num_str_arr[0]
+			second = num_str_arr[1]
+			if 0 < int(first) < 1000 and \
+				0 <= int(second) < 1000 and \
+				" ".join([first, second]) in string_value:
+				return int(first) * 1000 + int(second)
+		return int(num_str_arr[0])
 
 	def get_power_value(self):
 		"""
@@ -54,3 +68,23 @@ class ValueParser:
 		mass_text = self.car_data.get(MASS_KEY, '0')
 		mass_value = self.__get_first_number(mass_text)
 		return round(mass_value / 500.0)
+
+	def get_speedometer_value(self):
+		"""
+		Speedometer value: first 100 000km is 0-10 proportionately,
+		the part from 100 000 to 200 000 is plus 1-5 penalty point similarly
+		from 200 000 it's 2.5 penalty for every 100 000 (proportionately)
+		The more a car runs, the less it's worth
+		:return: value for speedometer
+		"""
+		speedometer_text = self.car_data.get(SPEEDOMETER_KEY, '-12')
+		speedometer_value = self.__get_first_number(speedometer_text)
+		if 0 < speedometer_value:
+			speedometer_value = speedometer_value / 10000.0
+		else:
+			return speedometer_value
+		if 10 < speedometer_value < 20:
+			speedometer_value = 10 + (speedometer_value - 10) / 2.0
+		elif 20 < speedometer_value:
+			speedometer_value = 15 + (speedometer_value - 20) / 4.0
+		return round(speedometer_value) * -1
