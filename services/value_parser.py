@@ -1,5 +1,5 @@
 from services.constants import POWER_KEY,CONDITION_KEY, Conditions, TRUNK_KEY
-from services.constants import MASS_KEY, SPEEDOMETER_KEY
+from services.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY
 
 
 class ValueParser:
@@ -15,6 +15,7 @@ class ValueParser:
 		:return: the first number. Space delimited numbers are regarded
 		up to 999 999
 		"""
+		string_value = string_value.replace('.', "")
 		num_str_arr = [s for s in string_value.split() if s.lstrip("-").isdigit()]
 		if len(num_str_arr) > 1:
 			first = num_str_arr[0]
@@ -27,9 +28,9 @@ class ValueParser:
 
 	def get_power_value(self):
 		"""
-		Parses the the horsepower value of the car from the HTML text
+		Parses the the kilowatt value of the car from the HTML text
 		representation
-		car_data[POWER_KEY]: the text representation e.g. '62 LE'
+		car_data[POWER_KEY]: the text representation e.g. '62 kW'
 		:return: the value e.g. 62 or null if power is not present
 		"""
 		return self.__get_first_number(self.car_data.get(POWER_KEY, '0')) / 14
@@ -58,7 +59,7 @@ class ValueParser:
 		"""
 		trunk_space_text = self.car_data.get(TRUNK_KEY, '0')
 		trunk_space_value = self.__get_first_number(trunk_space_text)
-		return round(trunk_space_value / 150.0)
+		return round(trunk_space_value / 150)
 
 	def get_mass_value(self):
 		"""
@@ -67,7 +68,7 @@ class ValueParser:
 		"""
 		mass_text = self.car_data.get(MASS_KEY, '0')
 		mass_value = self.__get_first_number(mass_text)
-		return round(mass_value / 500.0)
+		return round(mass_value / 500)
 
 	def get_speedometer_value(self):
 		"""
@@ -80,11 +81,26 @@ class ValueParser:
 		speedometer_text = self.car_data.get(SPEEDOMETER_KEY, '-12')
 		speedometer_value = self.__get_first_number(speedometer_text)
 		if 0 < speedometer_value:
-			speedometer_value = speedometer_value / 10000.0
+			speedometer_value = speedometer_value / 10000
 		else:
 			return speedometer_value
-		if 10 < speedometer_value < 20:
-			speedometer_value = 10 + (speedometer_value - 10) / 2.0
-		elif 20 < speedometer_value:
-			speedometer_value = 15 + (speedometer_value - 20) / 4.0
+		if 10.0 < speedometer_value < 20:
+			speedometer_value = 10 + (speedometer_value - 10) / 2
+		elif 20.0 < speedometer_value:
+			speedometer_value = 15 + (speedometer_value - 20) / 4
 		return round(speedometer_value) * -1
+
+	def get_price_value(self):
+		"""
+		Price is calculated from the price and the power, if there is no problem
+		(like no power or price data), NOTE: max cap
+		:return: price to power ratio or 0 if there is no price or power
+		"""
+		power = self.__get_first_number(self.car_data.get(POWER_KEY, '0'))
+		ratio = 5000 * power
+		price_text = self.car_data.get(PRICE_KEY, '0')
+		price_value = self.__get_first_number(price_text)
+		if min(price_value, power) <= 0:
+			return 0
+		price_value = round(price_value / ratio)
+		return min(price_value, 10)

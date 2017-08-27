@@ -16,6 +16,7 @@ def get_car_value(car_data):
 	car_worth += value_parser.get_trunk_value()
 	car_worth += value_parser.get_mass_value()
 	car_worth += value_parser.get_speedometer_value()
+	car_worth += value_parser.get_price_value()
 
 	return car_worth
 
