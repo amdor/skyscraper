@@ -1,6 +1,7 @@
 from services.constants import POWER_KEY,CONDITION_KEY, Conditions, TRUNK_KEY
-from services.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY
-
+from services.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY
+from datetime import date
+from math import log10
 
 class ValueParser:
 
@@ -104,3 +105,32 @@ class ValueParser:
 			return 0
 		price_value = round(price_value / ratio)
 		return min(price_value, 10)
+
+	def get_age_value(self):
+		# The base point of car worth loss was
+		# http://www.edmunds.com/car-buying/how-fast-does-my-new-car-lose-value-infographic.html
+		prod_date = self.car_data.get(AGE_KEY, 0)
+		if prod_date == 0:
+			return 0
+		current_date = date.today()
+		#toInt
+		prod_date_arr = list(map(int, prod_date.split('/')))
+		if len(prod_date_arr) < 2:
+			prod_date = date(prod_date_arr[0], 12, 1)
+		else:
+			prod_date = date(prod_date_arr[0], prod_date_arr[1], 1)
+		months_old = current_date.month - prod_date.month
+		years_old = current_date.year - prod_date.year
+		if months_old < 0 < years_old:
+			months_old = 12 + months_old
+			years_old = max(current_date.year - prod_date.year - 1, 0)
+		price_loss = 0
+		if years_old <= 0 and months_old <= 3:
+			price_loss = 0
+		elif years_old <= 5:
+			price_loss -= 11 * years_old + 19
+		elif years_old <= 30:
+			price_loss -= log10(years_old - 3) * 10 + 60
+		else:
+			price_loss -= log10(years_old - 3) * 10 + 60 - 0.0006 * years_old ** 3
+		return round(price_loss/3)

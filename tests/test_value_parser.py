@@ -1,18 +1,25 @@
 import unittest
+from datetime import date
 from services.value_parser import ValueParser
-from services.constants import SPEEDOMETER_KEY, WORTH_KEY, CAR_KEY, CONDITION_KEY
-from services.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY
+from services.constants import SPEEDOMETER_KEY, CAR_KEY, CONDITION_KEY
+from services.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY, AGE_KEY
 
 
-class TestHappyPaths(unittest.TestCase):
+class TestBasicPaths(unittest.TestCase):
 	default_input = {}
 	value_parser = ValueParser(default_input)
+
+	@staticmethod
+	def date_to_age(years, months):
+		today = date.today()
+		return date(today.year - years, today.month - months, 1).strftime("%Y/%m")
 
 	def setUp(self):
 		self.default_input = {
 				CAR_KEY: 'http://hasznaltauto.hu/auto',
 				CONDITION_KEY: 'Újszerű',
-				SPEEDOMETER_KEY: '0 km'
+				SPEEDOMETER_KEY: '0 km',
+				AGE_KEY: date.today().strftime("%Y/%m")
 			}
 		self.value_parser = ValueParser(self.default_input)
 
@@ -50,39 +57,51 @@ class TestHappyPaths(unittest.TestCase):
 		self.assertEqual(mass_worth, 3)
 
 	def test_speedometer_worth(self):
-		car = self.default_input
-
-		car[SPEEDOMETER_KEY] = '92 000 km'
-		speedo_worth = self.value_parser.get_speedometer_value()
-		self.assertEqual(speedo_worth, -9)
-
-		car[SPEEDOMETER_KEY] = '140 000 km'
-		speedo_worth = self.value_parser.get_speedometer_value()
-		self.assertEqual(speedo_worth, -12)
-
-		car[SPEEDOMETER_KEY] = '240 000 km'
-		speedo_worth = self.value_parser.get_speedometer_value()
-		self.assertEqual(speedo_worth, -16)
+		self.assert_speedo('92 000 km', -9)
+		self.assert_speedo('140 000 km', -12)
+		self.assert_speedo('240 000 km', -16)
 
 	def test_price_worth(self):
 		car = self.default_input
 
 		#no power, no price
-		price_value = self.value_parser.get_price_value()
-		self.assertEqual(price_value, 0)
+		price_worth = self.value_parser.get_price_value()
+		self.assertEqual(price_worth, 0)
 
 		#no power
 		car[PRICE_KEY] = '6.000.000 Ft'
-		price_value = self.value_parser.get_price_value()
-		self.assertEqual(price_value, 0)
+		price_worth = self.value_parser.get_price_value()
+		self.assertEqual(price_worth, 0)
 
 		#no price
 		del car[PRICE_KEY]
 		car[POWER_KEY] = '100 kW'
-		price_value = self.value_parser.get_price_value()
-		self.assertEqual(price_value, 0)
+		price_worth = self.value_parser.get_price_value()
+		self.assertEqual(price_worth, 0)
 
 		#price and power
 		car[PRICE_KEY] = '6.000.000 Ft'
-		price_value = self.value_parser.get_price_value()
-		self.assertEqual(price_value, 10)
+		price_worth = self.value_parser.get_price_value()
+		self.assertEqual(price_worth, 10)
+
+	def test_age_worth(self):
+		self.assert_age(0, 3, 0)
+		self.assert_age(1, 0, -10)
+		self.assert_age(10, 0, -23)
+		self.assert_age(30, 0, -25)
+		self.assert_age(50, 0, -1)
+
+	'''ASSERTIONS'''
+
+	def assert_speedo(self, kilometers, expected):
+		car = self.default_input
+
+		car[SPEEDOMETER_KEY] = kilometers
+		speedo_worth = self.value_parser.get_speedometer_value()
+		self.assertEqual(speedo_worth, expected)
+
+	def assert_age(self, years, months, expected):
+		car = self.default_input
+		car[AGE_KEY] = TestBasicPaths.date_to_age(years, months)
+		age_worth = self.value_parser.get_age_value()
+		self.assertEquals(age_worth, expected)
