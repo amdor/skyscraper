@@ -1,7 +1,8 @@
 import unittest
+
 from services.comparator_service import compare_cars
-from services.constants import POWER_KEY, WORTH_KEY, CAR_KEY, CONDITION_KEY
-from services.constants import TRUNK_KEY, MASS_KEY, SPEEDOMETER_KEY
+from services.utils.constants import SPEEDOMETER_KEY
+from services.utils.constants import WORTH_KEY, CAR_KEY, CONDITION_KEY
 
 
 class TestHappyPaths(unittest.TestCase):

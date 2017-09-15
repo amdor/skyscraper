@@ -1,8 +1,9 @@
 import unittest
 from datetime import date
-from services.value_parser import ValueParser
-from services.constants import SPEEDOMETER_KEY, CAR_KEY, CONDITION_KEY
-from services.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY, AGE_KEY
+
+from services.utils.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY, AGE_KEY
+from services.utils.constants import SPEEDOMETER_KEY, CAR_KEY, CONDITION_KEY
+from services.utils.value_parser import ValueParser
 
 
 class TestBasicPaths(unittest.TestCase):

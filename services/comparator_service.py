@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
-from services.constants import CAR_KEY, WORTH_KEY
-from services.value_parser import ValueParser
+
+from services.utils.constants import CAR_KEY, WORTH_KEY
+from services.utils.value_parser import ValueParser
 
 
 def get_car_value(car_data):
