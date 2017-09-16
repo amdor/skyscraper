@@ -46,7 +46,7 @@ class ValueParser:
 		as baseline. Anything else (including empty value) is added as penalty
 		:return: the value for condition
 		"""
-		condition_text = self.car_data.get(CONDITION_KEY,'')
+		condition_text = self.car_data.get(CONDITION_KEY, '')
 		if condition_text == Conditions.COMMON.value \
 			or condition_text == Conditions.EXCELLENT.value \
 			or condition_text == Conditions.UNDAMAGED.value \

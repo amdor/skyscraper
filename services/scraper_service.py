@@ -1,30 +1,57 @@
 import requests
 from bs4 import BeautifulSoup
 import argparse
+from services.utils.constants import CAR_KEY, CAR_FEATURE_KEY_MAP
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
 Usage:
 	- From console: run 'python scraper_service.py url1 url2 ...'
 """
-class ScraperService:
 
+
+class ScraperService:
 	def __init__(self, car_urls):
 		self.car_urls = car_urls
 
-	def __parse_car(self, soup):
-		data = soup.find('table', class_='hirdetesadatok')
-		print(data)
+	@staticmethod
+	def __table_to_dictionary(table_tag) -> dict:
+		"""
+		Turns a two column beautiful soup Tag table into a dictionary by taking the first
+		column (of every row) as key and the second as value
+		:rtype: dict
+		:param table_tag: the table to process
+		"""
+		rows = {}
+		for row in table_tag.findAll('tr'):
+			columns = row.findAll('td')
+			if len(columns) == 2:
+				# Removes every unneeded characters that might pop up + whitespaces
+				rows[columns[0].text.strip().strip(":-")] = columns[1].text.strip().replace(u'\xa0', u' ')
+		return rows
 
+	@staticmethod
+	def __build_car_data(raw_data, car_url) -> dict:
+		car_data = {CAR_KEY: car_url}
+		for feature_key, feature_value in raw_data.items():
+			if feature_key in CAR_FEATURE_KEY_MAP:
+				data_key = CAR_FEATURE_KEY_MAP[feature_key]
+				car_data[data_key] = feature_value
+		return car_data
+
+	def __parse_car(self, soup, url):
+		table = soup.find('table', class_='hirdetesadatok')
+		table_dict = self.__table_to_dictionary(table)
+		return self.__build_car_data(table_dict, url)
 
 	def get_car_data(self):
+		car_data = []
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
-		for carURL in car_urls:
-			response = requests.get(carURL, headers=headers)
+		for car_url in car_urls:
+			response = requests.get(car_url, headers=headers)
 			car_soup = BeautifulSoup(response.content, 'lxml')
-			car_features = self.__parse_car(car_soup)
-
-
+			car_data.append(self.__parse_car(car_soup, car_url))
+		return car_data
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Provide car URLs for scraping.')
@@ -34,3 +61,4 @@ if __name__ == "__main__":
 
 	scraper = ScraperService(car_urls)
 	data = scraper.get_car_data()
+	print(data)
