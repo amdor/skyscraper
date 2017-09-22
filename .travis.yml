@@ -1,0 +1,11 @@
+language: python
+python:
+  - "3.6"
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - python setup.py sdist
+  - pip install --upgrade ./dist/skyscraper-1.0.1.tar.gz
+# command to run tests
+script:
+  - nosetests tests

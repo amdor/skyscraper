@@ -62,7 +62,7 @@ class ValueParser:
 		:return: the value for trunk space
 		"""
 		trunk_space_text = self.car_data.get(TRUNK_KEY, '0')
-		trunk_space_value = ValueParser.__ger_first_number(trunk_space_text)
+		trunk_space_value = ValueParser.__get_first_number(trunk_space_text)
 		return round(trunk_space_value / 150)
 
 	def get_mass_value(self):
@@ -71,7 +71,7 @@ class ValueParser:
 		:return: the value for mass
 		"""
 		mass_text = self.car_data.get(MASS_KEY, '0')
-		mass_value = ValueParser.__ger_first_number(mass_text)
+		mass_value = ValueParser.__get_first_number(mass_text)
 		return round(mass_value / 500)
 
 	def get_speedometer_value(self):
@@ -83,7 +83,7 @@ class ValueParser:
 		:return: value for speedometer
 		"""
 		speedometer_text = self.car_data.get(SPEEDOMETER_KEY, '-12')
-		speedometer_value = ValueParser.__ger_first_number(speedometer_text)
+		speedometer_value = ValueParser.__get_first_number(speedometer_text)
 		if 0 < speedometer_value:
 			speedometer_value = speedometer_value / 10000
 		else:
@@ -100,10 +100,10 @@ class ValueParser:
 		(like no power or price data), NOTE: max cap
 		:return: price to power ratio or 0 if there is no price or power
 		"""
-		power = ValueParser.__ger_first_number(self.car_data.get(POWER_KEY, '0'))
+		power = ValueParser.__get_first_number(self.car_data.get(POWER_KEY, '0'))
 		ratio = 5000 * power
 		price_text = self.car_data.get(PRICE_KEY, '0')
-		price_value = ValueParser.__ger_first_number(price_text)
+		price_value = ValueParser.__get_first_number(price_text)
 		if min(price_value, power) <= 0:
 			return 0
 		price_value = round(price_value / ratio)

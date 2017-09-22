@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import argparse
 from services.utils.constants import CAR_KEY, CAR_FEATURE_KEY_MAP
+from services.comparator_service import CarComparator
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -39,21 +40,23 @@ class ScraperService:
 				car_data[data_key] = feature_value
 		return car_data
 
-	def __parse_car(self, soup, url):
+	@staticmethod
+	def __parse_car(soup, url):
 		table = soup.find('table', class_='hirdetesadatok')
-		table_dict = self.__table_to_dictionary(table)
-		return self.__build_car_data(table_dict, url)
+		table_dict = ScraperService.__table_to_dictionary(table)
+		return ScraperService.__build_car_data(table_dict, url)
 
 	def get_car_data(self):
 		car_data = []
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
-		for car_url in car_urls:
+		for car_url in self.car_urls:
 			response = requests.get(car_url, headers=headers)
 			car_soup = BeautifulSoup(response.content, 'lxml')
-			car_data.append(self.__parse_car(car_soup, car_url))
+			car_data.append(ScraperService.__parse_car(car_soup, car_url))
 		return car_data
 
-if __name__ == "__main__":
+
+def main():
 	parser = argparse.ArgumentParser(description='Provide car URLs for scraping.')
 	parser.add_argument('car_urls', nargs='+', metavar='URLs', help='At least one car URL is required')
 	namespace = parser.parse_args()
@@ -61,4 +64,10 @@ if __name__ == "__main__":
 
 	scraper = ScraperService(car_urls)
 	data = scraper.get_car_data()
-	print(data)
+	CarComparator.compare_cars(data)
+	for car in data:
+		print(car['CarUri'])
+		print(car['worth'])
+
+if __name__ == "__main__":
+	main()
