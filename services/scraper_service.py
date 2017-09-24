@@ -47,6 +47,11 @@ class ScraperService:
 		return ScraperService.__build_car_data(table_dict, url)
 
 	def get_car_data(self):
+		"""
+		Gets car data from the initialized urls
+		:rtype: dict
+		:return: car data in dictionary. For keys see CAR_FEATURE_KEY_MAP's values
+		"""
 		car_data = []
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
 		for car_url in self.car_urls:
