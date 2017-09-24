@@ -27,5 +27,6 @@ Regarded keys for comparator service's input data (if used without scraping, as 
 ### Tests
 Run
 '''
-$ nosetests tests
+$ nosetests
 '''
+This rung tests under *tests* folder, for further details see setup.cfg.
