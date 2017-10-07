@@ -24,7 +24,7 @@ Regarded keys for comparator service's input data (if used without scraping, as 
 'speedometer'
 'trunk'
 
-The Python REST service's API see the docs.
+The Python REST service's API see the [docs](https://github.com/amdor/skyscraper/tree/master/docs).
 
 ### Tests
 Run
