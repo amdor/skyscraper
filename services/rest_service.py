@@ -21,7 +21,13 @@ class ScraperApi(Resource):
 				if re.match(URl_PATTERN, url):
 					valid_urls.append(url)
 		scraper = ScraperService(valid_urls)
-		return scraper.get_car_data()
+		return scraper.get_car_data(), 200, {'Access-Control-Allow-Origin': '*'}
+
+	def options(self):
+		return {'Allow': 'POST'}, 200, \
+				{'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Methods': 'POST,GET',
+					'Access-Control-Allow-Headers': 'Content-Type'}
 
 
 api.add_resource(ScraperApi, '/')
