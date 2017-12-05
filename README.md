@@ -11,11 +11,11 @@ See .ps1 file usages help (Get-Help), or the comment at the start of the files.
 #### Python
 Same with Python files, all files have extensive documentation in comments
 For the Python version's setup run
-'''
+```
 $ pip install -r requirements.txt
-'''
+```
 
-Regarded keys for comparator service's input data (if used without scraping, as a standalone library):
+Regarded keys for comparator service's input data (if used without scraping, as a standalone library): <br/>
 *age* <br/>
 *condition* <br/>
 *mass* <br/>
