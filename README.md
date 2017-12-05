@@ -16,13 +16,13 @@ $ pip install -r requirements.txt
 '''
 
 Regarded keys for comparator service's input data (if used without scraping, as a standalone library):
-'age'
-'condition'
-'mass'
-'power'
-'price'
-'speedometer'
-'trunk'
+*age* <br/>
+*condition* <br/>
+*mass* <br/>
+*power* <br/>
+*price* <br/>
+*speedometer* <br/>
+*trunk* <br/>
 
 The Python REST service's API see the [docs](https://github.com/amdor/skyscraper/tree/master/docs).
 
