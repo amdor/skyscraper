@@ -28,7 +28,7 @@ The Python REST service's API see the [docs](https://github.com/amdor/skyscraper
 
 ### Tests
 Run
-'''
+```
 $ nosetests
-'''
-This rung tests under *tests* folder, for further details see setup.cfg.
+```
+This runs tests under *tests* folder. For further details see setup.cfg.
