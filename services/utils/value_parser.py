@@ -110,8 +110,12 @@ class ValueParser:
 		return min(price_value, 10)
 
 	def get_age_value(self):
-		# The base point of car worth loss was
-		# http://www.edmunds.com/car-buying/how-fast-does-my-new-car-lose-value-infographic.html
+		"""
+		The date of production is required for this feature in YYYY[/MM/*]? format
+		The base point of car worth loss was
+		http://www.edmunds.com/car-buying/how-fast-does-my-new-car-lose-value-infographic.html
+		:return: the worth loss by the car's age
+		"""
 		prod_date = self.car_data.get(AGE_KEY, 0)
 		if prod_date == 0:
 			return 0
@@ -127,9 +131,9 @@ class ValueParser:
 		if months_old < 0 < years_old:
 			months_old = 12 + months_old
 			years_old = max(current_date.year - prod_date.year - 1, 0)
-		price_loss = 0
+		price_loss = -months_old
 		if years_old <= 0 and months_old <= 3:
-			price_loss = 0
+			return price_loss
 		elif years_old <= 5:
 			price_loss -= 11 * years_old + 19
 		elif years_old <= 30:

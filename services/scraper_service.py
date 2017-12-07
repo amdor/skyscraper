@@ -8,6 +8,7 @@ from services.comparator_service import CarComparator
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
 Usage:
 	- From console: run 'python scraper_service.py url1 url2 ...'
+	- As a Python class: initialize the class with an array of strings as parameter. The array must contain the URLs
 """
 
 

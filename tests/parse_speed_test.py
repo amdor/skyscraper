@@ -2,7 +2,7 @@ from os import listdir
 from bs4 import BeautifulSoup
 from services.scraper_service import ScraperService
 
-DIR_NAME = './../test_resource/html/'
+DIR_NAME = './resources/html/'
 
 def parse_html():
 	files = listdir(DIR_NAME)

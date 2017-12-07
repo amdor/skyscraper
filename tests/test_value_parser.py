@@ -86,7 +86,7 @@ class TestBasicPaths(unittest.TestCase):
 		self.assertEqual(price_worth, 10)
 
 	def test_age_worth(self):
-		self.assert_age(0, 3, 0)
+		self.assert_age(0, 3, -3)
 		self.assert_age(1, 0, -10)
 		self.assert_age(10, 0, -23)
 		self.assert_age(30, 0, -25)
