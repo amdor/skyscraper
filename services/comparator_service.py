@@ -21,7 +21,7 @@ class CarComparator:
 		car_worth += value_parser.get_speedometer_value()
 		car_worth += value_parser.get_price_value()
 
-		return car_worth
+		return round(car_worth, 2)
 
 	@staticmethod
 	def compare_cars(cars_data):
