@@ -28,6 +28,8 @@ class ValueParser:
 				0 <= int(second) < 1000 and \
 				" ".join([first, second]) in string_value:
 				return int(first) * 1000 + int(second)
+		if len(num_str_arr) == 0:
+			return 0
 		return int(num_str_arr[0])
 
 	def get_power_value(self):
