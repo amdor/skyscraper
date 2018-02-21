@@ -11,7 +11,7 @@ VERSION_RE = re.compile(r'''__version__ = ['"]([0-9.]+)['"]''')
 
 
 def get_version():
-    init = open(os.path.join(ROOT, 'services', '__init__.py')).read()
+    init = open(os.path.join(ROOT, 'skyscraper', '__init__.py')).read()
     return VERSION_RE.search(init).group(1)
 
 

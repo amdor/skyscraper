@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import argparse
-from services.utils.constants import CAR_KEY, CAR_FEATURE_KEY_MAP
-from services.comparator_service import CarComparator
+from skyscraper.utils.constants import CAR_KEY, CAR_FEATURE_KEY_MAP
+from skyscraper.comparator_service import CarComparator
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -13,7 +13,7 @@ Usage:
 
 
 class ScraperService:
-	def __init__(self, car_urls):
+	def __init__(self, car_urls=[]):
 		self.car_urls = car_urls
 
 	@staticmethod
@@ -47,13 +47,16 @@ class ScraperService:
 		table_dict = ScraperService.__table_to_dictionary(table)
 		return ScraperService.__build_car_data(table_dict, url)
 
-	def get_car_data(self):
+	def get_car_data(self, html = ''):
 		"""
 		Gets car data from the initialized urls
 		:rtype: dict
 		:return: car data in dictionary. For keys see CAR_FEATURE_KEY_MAP's values
 		"""
 		car_data = []
+		if html:
+			car_soup = BeautifulSoup(html, 'lxml')
+			car_data.append(ScraperService.__parse_car(car_soup, self.car_urls[0]))
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
 		for car_url in self.car_urls:
 			response = requests.get(car_url, headers=headers)

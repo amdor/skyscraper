@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from services.utils.constants import CAR_KEY, WORTH_KEY
-from services.utils.value_parser import ValueParser
+from skyscraper.utils.constants import CAR_KEY, WORTH_KEY
+from skyscraper.utils.value_parser import ValueParser
 
 
 class CarComparator:

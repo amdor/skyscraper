@@ -1,6 +1,6 @@
 from os import listdir
 from bs4 import BeautifulSoup
-from services.scraper_service import ScraperService
+from skyscraper.scraper_service import ScraperService
 
 DIR_NAME = './resources/html/'
 

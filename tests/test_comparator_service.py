@@ -1,8 +1,8 @@
 import unittest
 
-from services.comparator_service import CarComparator
-from services.utils.constants import SPEEDOMETER_KEY
-from services.utils.constants import WORTH_KEY, CAR_KEY, CONDITION_KEY
+from skyscraper.comparator_service import CarComparator
+from skyscraper.utils.constants import SPEEDOMETER_KEY
+from skyscraper.utils.constants import WORTH_KEY, CAR_KEY, CONDITION_KEY
 
 compare_cars = CarComparator.compare_cars
 

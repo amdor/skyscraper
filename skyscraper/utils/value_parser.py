@@ -1,8 +1,8 @@
 from datetime import date
 from math import log10
 
-from services.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY
-from services.utils.constants import POWER_KEY, CONDITION_KEY, Conditions, TRUNK_KEY
+from skyscraper.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY
+from skyscraper.utils.constants import POWER_KEY, CONDITION_KEY, Conditions, TRUNK_KEY
 
 
 class ValueParser:
