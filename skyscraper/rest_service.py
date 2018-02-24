@@ -19,13 +19,19 @@ class ScrapeByUrls(Resource):
 		if request.is_json:
 			request_data = request.get_json()
 			if URL_KEY not in request_data:
-				abort(Response('Provide car URL', status=400))
-			for url in request_data[URL_KEY]:
+				if HTML_KEY not in request_data:
+					abort(Response('Provide car URL or html dict with url keys', status=400))
+				else:
+					urls = [*request_data.get(HTML_KEY)]
+			else:
+				urls = request_data.get(URL_KEY)
+			for url in urls:
 				if re.match(URl_PATTERN, url):
 					valid_urls.append(url)
 			html_contents = request_data.get(HTML_KEY, {})
-			if html_contents:
-				scraper = ScraperServiceFactory.get_for_dict(html_contents)
+			valid_html_contents = {url: html_contents[url] for url in valid_urls}
+			if valid_html_contents:
+				scraper = ScraperServiceFactory.get_for_dict(valid_html_contents)
 			else:
 				scraper = ScraperService(valid_urls)
 			data = scraper.get_car_data()
