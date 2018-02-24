@@ -29,7 +29,10 @@ class ScrapeByUrls(Resource):
 				if re.match(URl_PATTERN, url):
 					valid_urls.append(url)
 			html_contents = request_data.get(HTML_KEY, {})
-			valid_html_contents = {url: html_contents[url] for url in valid_urls}
+			if html_contents:
+				valid_html_contents = {url: html_contents[url] for url in valid_urls}
+			else:
+				valid_html_contents = {}
 			if valid_html_contents:
 				scraper = ScraperServiceFactory.get_for_dict(valid_html_contents)
 			else:
