@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 from datetime import date
 
-from services.utils.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY, AGE_KEY
-from services.utils.constants import SPEEDOMETER_KEY, CAR_KEY, CONDITION_KEY
-from services.utils.value_parser import ValueParser
+from skyscraper.utils.constants import POWER_KEY, TRUNK_KEY, MASS_KEY, PRICE_KEY, AGE_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, CONDITION_KEY
+from skyscraper.utils.value_parser import ValueParser
 
 
 class TestBasicPaths(unittest.TestCase):
@@ -13,7 +15,13 @@ class TestBasicPaths(unittest.TestCase):
 	@staticmethod
 	def date_to_age(years, months):
 		today = date.today()
-		return date(today.year - years, today.month - months, 1).strftime("%Y/%m")
+		month_diff = today.month - months
+		if month_diff <= 0:
+			years += 1
+			months = 12 - month_diff
+		else:
+			months = month_diff
+		return date(today.year - years, months, 1).strftime("%Y/%m")
 
 	def setUp(self):
 		self.default_input = {
