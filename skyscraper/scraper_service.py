@@ -60,9 +60,13 @@ class ScraperService:
 		car_data = []
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
 		for car_url in self.car_urls:
-			response = requests.get(car_url, headers=headers)
-			car_soup = BeautifulSoup(response.content, 'lxml')
-			car_data.append(ScraperService.__parse_car(car_soup, car_url))
+			if car_url not in self.htmls:
+				response = requests.get(car_url, headers=headers)
+				car_soup = BeautifulSoup(response.content, 'lxml')
+				car_data.append(ScraperService.__parse_car(car_soup, car_url))
+			else:
+				car_soup = BeautifulSoup(self.htmls[car_url], 'lxml')
+				car_data.append(ScraperService.__parse_car(car_soup, car_url))
 		return car_data
 
 
