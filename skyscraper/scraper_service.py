@@ -1,7 +1,8 @@
+import argparse
+import re
 import requests
 from bs4 import BeautifulSoup
-import argparse
-from skyscraper.utils.constants import CAR_KEY, CAR_FEATURE_KEY_MAP
+
 from skyscraper.comparator_service import CarComparator
 
 """
@@ -21,35 +22,9 @@ class ScraperService:
 		self.htmls = htmls
 
 	@staticmethod
-	def __table_to_dictionary(table_tag) -> dict:
-		"""
-		Turns a two column beautiful soup Tag table into a dictionary by taking the first
-		column (of every row) as key and the second as value
-		:rtype: dict
-		:param table_tag: the table to process
-		"""
-		rows = {}
-		for row in table_tag.findAll('tr'):
-			columns = row.findAll('td')
-			if len(columns) == 2:
-				# Removes every unneeded characters that might pop up + whitespaces
-				rows[columns[0].text.strip().strip(":-")] = columns[1].text.strip().replace(u'\xa0', u' ')
-		return rows
-
-	@staticmethod
-	def __build_car_data(raw_data, car_url) -> dict:
-		car_data = {CAR_KEY: car_url}
-		for feature_key, feature_value in raw_data.items():
-			if feature_key in CAR_FEATURE_KEY_MAP:
-				data_key = CAR_FEATURE_KEY_MAP[feature_key]
-				car_data[data_key] = feature_value
-		return car_data
-
-	@staticmethod
 	def __parse_car(soup, url):
-		table = soup.find('table', class_='hirdetesadatok')
-		table_dict = ScraperService.__table_to_dictionary(table)
-		return ScraperService.__build_car_data(table_dict, url)
+		mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
+		return mileage
 
 	def get_car_data(self):
 		"""
@@ -62,11 +37,12 @@ class ScraperService:
 		for car_url in self.car_urls:
 			if car_url not in self.htmls:
 				response = requests.get(car_url, headers=headers)
-				car_soup = BeautifulSoup(response.content, 'lxml')
-				car_data.append(ScraperService.__parse_car(car_soup, car_url))
+				content = response.content
 			else:
-				car_soup = BeautifulSoup(self.htmls[car_url], 'lxml')
-				car_data.append(ScraperService.__parse_car(car_soup, car_url))
+				content = str(self.htmls[car_url], encoding='utf-8')
+			content = content.replace('\xa0', ' ')
+			car_soup = BeautifulSoup(content, 'lxml')
+			car_data.append(ScraperService.__parse_car(car_soup, car_url))
 		return car_data
 
 
