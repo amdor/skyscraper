@@ -8,6 +8,7 @@ from skyscraper.utils.constants import WORTH_KEY, CAR_KEY, CONDITION_KEY
 
 compare_cars = CarComparator.compare_cars
 
+
 class TestHappyPaths(unittest.TestCase):
 	defaultInput = []
 
@@ -30,4 +31,4 @@ class TestHappyPaths(unittest.TestCase):
 			CAR_KEY: 'http://hasznaltauto.hu/auto'
 		}
 		compare_cars([car])
-		self.assertEqual(car[WORTH_KEY], -32)
+		self.assertEqual(car[WORTH_KEY], -20)

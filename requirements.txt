@@ -6,4 +6,4 @@ lxml==3.8.0
 Flask==0.12.2
 Flask-Cors==3.0.3
 Flask-RESTful==0.3.6
-google-auth==1.4.1
+setuptools==38.5.2

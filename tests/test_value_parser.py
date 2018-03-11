@@ -68,7 +68,7 @@ class TestBasicPaths(unittest.TestCase):
 	def test_speedometer_worth(self):
 		self.assert_speedo('0km', 0)
 		self.assert_speedo('0 km', 0)
-		self.assert_speedo('92 000 km', -9)
+		self.assert_speedo('92,000 km', -9)
 		self.assert_speedo('140 000 km', -12)
 		self.assert_speedo('240 000 km', -16)
 

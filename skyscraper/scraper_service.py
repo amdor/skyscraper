@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
+from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -23,8 +24,13 @@ class ScraperService:
 
 	@staticmethod
 	def __parse_car(soup, url):
+		parsed_data = {CAR_KEY: url}
+
+		# numbers delimited by dot, space or coma, find the first
 		mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
-		return mileage
+		parsed_data[SPEEDOMETER_KEY] = mileage
+
+		return parsed_data
 
 	def get_car_data(self):
 		"""
@@ -32,7 +38,7 @@ class ScraperService:
 		:rtype: dict
 		:return: car data in dictionary. For keys see CAR_FEATURE_KEY_MAP's values
 		"""
-		car_data = []
+		cars = []
 		headers = {'User-Agent': 'Chrome/60.0.3112.113'}
 		for car_url in self.car_urls:
 			if car_url not in self.htmls:
@@ -42,8 +48,8 @@ class ScraperService:
 				content = str(self.htmls[car_url], encoding='utf-8')
 			content = content.replace('\xa0', ' ')
 			car_soup = BeautifulSoup(content, 'lxml')
-			car_data.append(ScraperService.__parse_car(car_soup, car_url))
-		return car_data
+			cars.append(ScraperService.__parse_car(car_soup, car_url))
+		return cars
 
 
 class ScraperServiceFactory:

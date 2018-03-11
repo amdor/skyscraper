@@ -13,24 +13,22 @@ class ValueParser:
 	@staticmethod
 	def __get_first_number(string_value):
 		"""
-		Parses the first number of a string.
+		Parses the first number of a string, that starts with a number.
 		:rtype: int
 		:param string_value: string to parse
-		:return: the first number. Space delimited numbers are regarded
-		up to 999 999
+		:return: the first number followed by any regarded delimiter. Space, dot, coma delimited numbers are regarded
 		"""
-		string_value = string_value.replace('.', "")
-		num_str_arr = [s for s in string_value.split() if s.lstrip("-").isdigit()]
-		if len(num_str_arr) > 1:
-			first = num_str_arr[0]
-			second = num_str_arr[1]
-			if 0 < int(first) < 1000 and \
-				0 <= int(second) < 1000 and \
-				" ".join([first, second]) in string_value:
-				return int(first) * 1000 + int(second)
-		if len(num_str_arr) == 0:
+		string_value = string_value.replace('.', '').replace(',', '').lstrip("-")
+		num_str_arr = [s for s in string_value.split()]
+		num_string = ''
+		i = 0
+		while i < len(num_str_arr) and num_str_arr[i].isdigit():
+			num_string = num_string + num_str_arr[i]
+			i += 1
+		if i > 0:
+			return int(num_string)
+		else:
 			return 0
-		return int(num_str_arr[0])
 
 	def get_power_value(self):
 		"""
@@ -50,10 +48,10 @@ class ValueParser:
 		"""
 		condition_text = self.car_data.get(CONDITION_KEY, '')
 		if condition_text == Conditions.COMMON.value \
-			or condition_text == Conditions.EXCELLENT.value \
-			or condition_text == Conditions.UNDAMAGED.value \
-			or condition_text == Conditions.PRESERVED.value \
-			or condition_text == Conditions.NOVEL.value:
+				or condition_text == Conditions.EXCELLENT.value \
+				or condition_text == Conditions.UNDAMAGED.value \
+				or condition_text == Conditions.PRESERVED.value \
+				or condition_text == Conditions.NOVEL.value:
 			return 0
 		else:
 			return -20
@@ -122,12 +120,29 @@ class ValueParser:
 		if prod_date == 0:
 			return 0
 		current_date = date.today()
-		#toInt
+
+		# toInt
+		prod_date = prod_date.replace('.', '/')
 		prod_date_arr = list(map(int, prod_date.split('/')))
-		if len(prod_date_arr) < 2:
+		if len(prod_date_arr) == 1:
 			prod_date = date(prod_date_arr[0], 12, 1)
-		else:
-			prod_date = date(prod_date_arr[0], prod_date_arr[1], 1)
+		elif len(prod_date_arr) >= 2:
+			# 2005/03
+			if prod_date_arr[0] > 1000:
+				year_string = prod_date_arr[0]
+				month_string = prod_date_arr[1]
+			# 03/2005
+			elif prod_date_arr[1] > 1000:
+				year_string = prod_date_arr[1]
+				month_string = prod_date_arr[0]
+			# 25/03/2005
+			elif prod_date_arr[2] > 1000:
+				year_string = prod_date_arr[2]
+				month_string = prod_date_arr[1]
+			else:
+				return 0
+			prod_date = date(year_string, month_string, 1)
+
 		months_old = current_date.month - prod_date.month
 		years_old = current_date.year - prod_date.year
 		if months_old < 0 < years_old:
@@ -142,4 +157,4 @@ class ValueParser:
 			price_loss -= log10(years_old - 3) * 10 + 60
 		else:
 			price_loss -= log10(years_old - 3) * 10 + 60 - 0.0006 * years_old ** 3
-		return round(price_loss/3)
+		return round(price_loss / 3)
