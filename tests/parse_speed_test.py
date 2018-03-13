@@ -5,7 +5,7 @@ import re
 
 import time
 from bs4 import BeautifulSoup
-from .common_test_utils import gather_extension_files, VALIDATION_DATA
+from common_test_utils import gather_extension_files, VALIDATION_DATA
 
 
 def parse_html(content, parser):

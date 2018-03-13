@@ -3,7 +3,7 @@ import unittest
 
 from skyscraper.scraper_service import ScraperServiceFactory
 from skyscraper.utils.constants import SPEEDOMETER_KEY
-from .common_test_utils import gather_extension_files, VALIDATION_DATA
+from common_test_utils import gather_extension_files, VALIDATION_DATA
 
 
 
