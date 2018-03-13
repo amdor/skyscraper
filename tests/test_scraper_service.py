@@ -2,7 +2,7 @@ import os
 import unittest
 
 from skyscraper.scraper_service import ScraperServiceFactory
-from skyscraper.utils.constants import SPEEDOMETER_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY, CAR_KEY
 from common_test_utils import gather_extension_files, VALIDATION_DATA
 
 
@@ -23,4 +23,6 @@ class TestBasicPaths(unittest.TestCase):
 				file_content = html_file.read()
 				scraper = ScraperServiceFactory.get_for_dict({file_name: file_content})
 				car_data = scraper.get_car_data()
+				print(car_data[0][CAR_KEY] + ' assertions')
 				self.assertEqual(VALIDATION_DATA[file_name][SPEEDOMETER_KEY], car_data[0][SPEEDOMETER_KEY])
+				self.assertEqual(VALIDATION_DATA[file_name][AGE_KEY], car_data[0][AGE_KEY])

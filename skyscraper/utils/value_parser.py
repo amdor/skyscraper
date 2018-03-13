@@ -124,10 +124,8 @@ class ValueParser:
 		# toInt
 		prod_date = prod_date.replace('.', '/')
 		prod_date_arr = list(map(int, prod_date.split('/')))
-		if len(prod_date_arr) == 1:
-			if not self.__is_string_year(prod_date_arr[0]):
-				return 0
-			prod_date = date(prod_date_arr[0], 12, 1)
+		if len(prod_date_arr) < 2:
+			return 0
 		elif len(prod_date_arr) >= 2:
 			# 2005/03
 			if self.__is_string_year(prod_date_arr[0]):

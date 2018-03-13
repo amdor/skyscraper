@@ -29,9 +29,9 @@ class ScraperService:
 		# numbers delimited by dot, space or coma, find the first
 		mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
 		parsed_data[SPEEDOMETER_KEY] = mileage
-		# all yyyy/mm and mm/yyyy formats are accepted (days also) and yyyy as well
+		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
-		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{2}){0,2})|(\d{2}(/\d{2})?/\d{4})$'))
+		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
 		parsed_data[AGE_KEY] = prod_date
 
 		return parsed_data

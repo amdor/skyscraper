@@ -1,13 +1,15 @@
 import os
 
-from skyscraper.utils.constants import SPEEDOMETER_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY
 
 VALIDATION_DATA = {
 	'bmw_530xd_automata-12119695.html': {
-		SPEEDOMETER_KEY: '98 100 km'
+		SPEEDOMETER_KEY: '98 100 km',
+		AGE_KEY: '2014/1'
 	},
 	'audi_a4_avant.html': {
-		SPEEDOMETER_KEY: '56,488 km'
+		SPEEDOMETER_KEY: '56,488 km',
+		AGE_KEY: '08/2013'
 	}
 }
 
