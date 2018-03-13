@@ -4,7 +4,7 @@ from enum import Enum
 CAR_KEY = 'CarUri'
 WORTH_KEY = 'worth'
 
-AGE_KEY = 'age'
+AGE_KEY = 'prod_date'
 CONDITION_KEY = 'condition'
 MASS_KEY = 'mass'
 POWER_KEY = 'power'

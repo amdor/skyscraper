@@ -125,20 +125,31 @@ class ValueParser:
 		prod_date = prod_date.replace('.', '/')
 		prod_date_arr = list(map(int, prod_date.split('/')))
 		if len(prod_date_arr) == 1:
+			if not self.__is_string_year(prod_date_arr[0]):
+				return 0
 			prod_date = date(prod_date_arr[0], 12, 1)
 		elif len(prod_date_arr) >= 2:
 			# 2005/03
-			if prod_date_arr[0] > 1000:
+			if self.__is_string_year(prod_date_arr[0]):
 				year_string = prod_date_arr[0]
-				month_string = prod_date_arr[1]
+				if self.__is_string_month(prod_date_arr[1]):
+					month_string = prod_date_arr[1]
+				else:
+					return 0
 			# 03/2005
-			elif prod_date_arr[1] > 1000:
+			elif self.__is_string_year(prod_date_arr[1]):
 				year_string = prod_date_arr[1]
-				month_string = prod_date_arr[0]
+				if self.__is_string_month(prod_date_arr[0]):
+					month_string = prod_date_arr[0]
+				else:
+					return 0
 			# 25/03/2005
-			elif prod_date_arr[2] > 1000:
+			elif self.__is_string_year(prod_date_arr[2]):
 				year_string = prod_date_arr[2]
-				month_string = prod_date_arr[1]
+				if self.__is_string_month(prod_date_arr[1]):
+					month_string = prod_date_arr[1]
+				else:
+					return 0
 			else:
 				return 0
 			prod_date = date(year_string, month_string, 1)
@@ -158,3 +169,12 @@ class ValueParser:
 		else:
 			price_loss -= log10(years_old - 3) * 10 + 60 - 0.0006 * years_old ** 3
 		return round(price_loss / 3)
+
+	@staticmethod
+	def __is_string_year(year_string):
+		current_date = date.today()
+		return 1900 <= int(year_string) <= int(current_date.year)
+
+	@staticmethod
+	def __is_string_month(month_string):
+		return 1 <= int(month_string) <= 12

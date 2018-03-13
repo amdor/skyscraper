@@ -39,7 +39,6 @@ class TestBasicPaths(unittest.TestCase):
 		path = os.path.dirname(os.path.realpath(__file__))
 		cls.files_under_test = gather_extension_files(path)
 
-
 	def test_scraping(self):
 		for file_name in [*VALIDATION_DATA]:
 			abs_path = list(filter(lambda test_file: test_file.endswith(file_name), self.files_under_test))[0]
