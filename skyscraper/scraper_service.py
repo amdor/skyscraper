@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
-from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -34,6 +34,9 @@ class ScraperService:
 		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
 		parsed_data[AGE_KEY] = prod_date
 
+
+		price = soup.find(text=re.compile('^(\$|€|£)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)$| ?[F][t|T]$)'))
+		parsed_data[PRICE_KEY] = price
 		return parsed_data
 
 	def get_car_data(self):
