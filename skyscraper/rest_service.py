@@ -4,7 +4,6 @@ import re
 
 from skyscraper.comparator_service import CarComparator
 from skyscraper.scraper_service import ScraperService, ScraperServiceFactory
-from skyscraper.auth_service import AuthService, authenticated_users
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,13 +19,14 @@ class ScrapeByUrls(Resource):
 		if request.is_json:
 			request_data = request.get_json()
 
-			id_token = request_data.get(USER_ID_TOKEN_KEY, '')
-			print("Id received: " + id_token)
-			authorized = AuthService.validate_token(id_token)
-			print("Authorization result: " + str(authorized))
-			print("Authorized id: " + authenticated_users[0])
-			if not authorized:
-				abort(Response('Provide car URL or html dict with url keys', status=400))
+			# reserved for future usage
+			# id_token = request_data.get(USER_ID_TOKEN_KEY, '')
+			# print("Id received: " + id_token)
+			# authorized = AuthService.validate_token(id_token)
+			# print("Authorization result: " + str(authorized))
+			# print("Authorized id: " + authenticated_users[0])
+			# if not authorized:
+			# 	abort(Response('Provide car URL or html dict with url keys', status=400))
 
 			# get the urls one way or another
 			if URL_KEY not in request_data:
@@ -37,11 +37,7 @@ class ScrapeByUrls(Resource):
 			else:
 				urls = request_data.get(URL_KEY)
 
-			# validate urls
-			valid_urls = []
-			for url in urls:
-				if re.match(URl_PATTERN, url):
-					valid_urls.append(url)
+			valid_urls = [url for url in urls if url]
 
 			# validate html contents
 			html_contents = request_data.get(HTML_KEY, {})
@@ -59,7 +55,7 @@ class ScrapeByUrls(Resource):
 			CarComparator.compare_cars(data)
 			return data, 200, {'Access-Control-Allow-Origin': '*'}
 		else:
-			abort(Response('Body is not json', status=400))
+			abort(Response('Body is not json', status=400, headers={'Access-Control-Allow-Origin': '*'}))
 
 	def options(self):
 		return {'Allow': 'POST'}, 200, \

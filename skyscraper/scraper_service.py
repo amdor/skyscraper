@@ -1,10 +1,11 @@
 import argparse
 import re
+
 import requests
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
-from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY, POWER_KEY
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -29,13 +30,18 @@ class ScraperService:
 		# numbers delimited by dot, space or coma, find the first
 		mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
 		parsed_data[SPEEDOMETER_KEY] = mileage
+
 		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
 		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
 		parsed_data[AGE_KEY] = prod_date
 
-		price = soup.find(text=re.compile('^(\$|€|£)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)$| ?[F][t|T]$)'))
+		price = soup.find(text=re.compile('^(\$|€|£|Ft)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)|(1))'))
 		parsed_data[PRICE_KEY] = price
+
+		power = soup.find(text=re.compile('\d{1,4} ?kW'))
+		# get only the kW part
+		parsed_data[POWER_KEY] = re.search('\d{1,4} ?kW(?=.*)', power)[0]
 		return parsed_data
 
 	def get_car_data(self):
@@ -49,7 +55,7 @@ class ScraperService:
 		for car_url in self.car_urls:
 			if car_url not in self.htmls:
 				response = requests.get(car_url, headers=headers)
-				content = response.content
+				content = str(response.content, encoding='utf-8')
 			else:
 				content = str(self.htmls[car_url], encoding='utf-8')
 			content = content.replace('\xa0', ' ')
