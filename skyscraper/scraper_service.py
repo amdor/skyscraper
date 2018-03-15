@@ -34,7 +34,6 @@ class ScraperService:
 		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
 		parsed_data[AGE_KEY] = prod_date
 
-
 		price = soup.find(text=re.compile('^(\$|€|£)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)$| ?[F][t|T]$)'))
 		parsed_data[PRICE_KEY] = price
 		return parsed_data

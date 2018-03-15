@@ -8,3 +8,4 @@ Flask-Cors==3.0.3
 Flask-RESTful==0.3.6
 setuptools==38.5.2
 html5lib==1.0.1
+currencyconverter==0.13.3

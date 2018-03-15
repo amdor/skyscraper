@@ -1,7 +1,10 @@
+import re
 from datetime import date
 from math import log10
+from currency_converter import CurrencyConverter
 
-from skyscraper.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY
+from skyscraper.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY, ACCEPTED_CURRENCIES, \
+	ACCEPTED_CURRENCY_KEYS
 from skyscraper.utils.constants import POWER_KEY, CONDITION_KEY, Conditions, TRUNK_KEY
 
 
@@ -18,17 +21,16 @@ class ValueParser:
 		:param string_value: string to parse
 		:return: the first number followed by any regarded delimiter. Space, dot, coma delimited numbers are regarded
 		"""
-		string_value = string_value.replace('.', '').replace(',', '').lstrip("-")
-		num_str_arr = [s for s in string_value.split()]
-		num_string = ''
-		i = 0
-		while i < len(num_str_arr) and num_str_arr[i].isdigit():
-			num_string = num_string + num_str_arr[i]
-			i += 1
-		if i > 0:
-			return int(num_string)
-		else:
-			return 0
+		num_val = ValueParser.__remove_special_chars_from_number(string_value)
+		if num_val:
+			return int(num_val)
+		return 0
+
+	@staticmethod
+	def __remove_special_chars_from_number(string_value):
+		ret_val = string_value.replace('.', '').replace(',', '').replace(' ', '')
+		ret_val = re.search('[^0-9]*(?P<num>\d*)', ret_val).group('num')
+		return ret_val
 
 	def get_power_value(self):
 		"""
@@ -94,6 +96,26 @@ class ValueParser:
 			speedometer_value = 15 + (speedometer_value - 20) / 4
 		return round(speedometer_value) * -1
 
+	@staticmethod
+	def __get_in_huf(amount_in_original_currency):
+		"""
+		Converts any accepted currencies to HUF
+		:param amount_in_original_currency: amount string in original currency to be converted
+		:return: value in HUF
+		"""
+		from_currency = 'EUR'
+		for currency_symbol in ACCEPTED_CURRENCIES:
+			if currency_symbol in amount_in_original_currency:
+				from_currency = ACCEPTED_CURRENCY_KEYS[currency_symbol]
+				break
+		trimmed_amount_number = ValueParser.__get_first_number(amount_in_original_currency)
+		if from_currency == 'HUF':
+			return trimmed_amount_number
+		else:
+			converter = CurrencyConverter()
+			new_currency = converter.convert(trimmed_amount_number, from_currency, 'HUF')
+			return new_currency
+
 	def get_price_value(self):
 		"""
 		Price is calculated from the price and the power, if there is no problem
@@ -103,7 +125,8 @@ class ValueParser:
 		power = ValueParser.__get_first_number(self.car_data.get(POWER_KEY, '0'))
 		ratio = 5000 * power
 		price_text = self.car_data.get(PRICE_KEY, '0')
-		price_value = ValueParser.__get_first_number(price_text)
+		# price_value = ValueParser.__get_first_number(price_text)
+		price_value = ValueParser.__get_in_huf(price_text)
 		if min(price_value, power) <= 0:
 			return 0
 		price_value = round(price_value / ratio)

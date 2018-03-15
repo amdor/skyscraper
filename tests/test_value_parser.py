@@ -91,7 +91,7 @@ class TestBasicPaths(unittest.TestCase):
 		self.assertEqual(price_worth, 0)
 
 		#price and power
-		car[PRICE_KEY] = '6.000.000 Ft'
+		car[PRICE_KEY] = '€ 26.535'
 		price_worth = self.value_parser.get_price_value()
 		self.assertEqual(price_worth, 10)
 

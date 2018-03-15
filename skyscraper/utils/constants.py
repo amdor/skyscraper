@@ -30,6 +30,13 @@ CAR_FEATURE_KEY_MAP = {AGE_PARSE_KEY: AGE_KEY,
 					   SPEEDOMETER_PARSE_KEY: SPEEDOMETER_KEY,
 					   TRUNK_PARSE_KEY: TRUNK_KEY}
 
+ACCEPTED_CURRENCIES = ['$', '€', '£', 'Ft', 'FT']
+ACCEPTED_CURRENCY_KEYS = {'$': 'USD',
+						  '€': 'EUR',
+						  '£': 'GBP',
+						  'Ft': 'HUF',
+						  'FT': 'HUF'}
+
 
 class Conditions(Enum):
 	COMMON = 'Normál'

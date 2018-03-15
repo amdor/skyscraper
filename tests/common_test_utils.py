@@ -1,15 +1,22 @@
 import os
 
-from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY, PRICE_KEY
 
 VALIDATION_DATA = {
-	'bmw_530xd_automata-12119695.html': {
+	'hahu1.html': {
 		SPEEDOMETER_KEY: '98 100 km',
-		AGE_KEY: '2014/1'
+		AGE_KEY: '2014/1',
+		PRICE_KEY: '€ 26.535'
 	},
-	'audi_a4_avant.html': {
+	'hahu2.html': {
+		SPEEDOMETER_KEY: '178 000 km',
+		AGE_KEY: '2012/7',
+		PRICE_KEY: '€ 29.528'
+	},
+	'mobile1.html': {
 		SPEEDOMETER_KEY: '56,488 km',
-		AGE_KEY: '08/2013'
+		AGE_KEY: '08/2013',
+		PRICE_KEY: '€20,444'
 	}
 }
 
