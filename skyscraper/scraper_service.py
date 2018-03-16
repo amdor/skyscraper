@@ -2,6 +2,7 @@ import argparse
 import re
 
 import requests
+import unicodedata
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
@@ -26,22 +27,27 @@ class ScraperService:
 	@staticmethod
 	def __parse_car(soup, url):
 		parsed_data = {CAR_KEY: url}
+		soup_text = soup.text.replace('\xa0', ' ')
 
 		# numbers delimited by dot, space or coma, find the first
-		mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
+		# mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
+		mileage = re.search('((\d{1,3}[., ]?){1,3})km|miles', soup_text)[0]
 		parsed_data[SPEEDOMETER_KEY] = mileage
 
 		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
-		prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
+		# prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
+		prod_date = re.search('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})', soup_text)[0]
 		parsed_data[AGE_KEY] = prod_date
 
-		price = soup.find(text=re.compile('^(\$|€|£|Ft)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)|(1))'))
+		# price = soup.find(text=re.compile('^(\$|€|£|Ft)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)|(1))'))
+		price = re.search('(€|£|(Ft)) ?(\d{1,3}[., ]?){1,3}(?(1)|(1))', soup_text)[0]
 		parsed_data[PRICE_KEY] = price
 
-		power = soup.find(text=re.compile('\d{1,4} ?kW'))
+		# power = soup.find(text=re.compile('\d{1,4} ?kW'))
+		power = re.search('\d{1,4} ?kW', soup_text)[0]
 		# get only the kW part
-		parsed_data[POWER_KEY] = re.search('\d{1,4} ?kW(?=.*)', power)[0]
+		parsed_data[POWER_KEY] = power
 		return parsed_data
 
 	def get_car_data(self):
@@ -57,8 +63,8 @@ class ScraperService:
 				response = requests.get(car_url, headers=headers)
 				content = str(response.content, encoding='utf-8')
 			else:
-				content = str(self.htmls[car_url], encoding='utf-8')
-			content = content.replace('\xa0', ' ')
+				content = self.htmls[car_url]
+			content = content.replace('\\xa0', ' ')
 			car_soup = BeautifulSoup(content, 'lxml')
 			cars.append(ScraperService.__parse_car(car_soup, car_url))
 		return cars

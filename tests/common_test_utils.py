@@ -18,7 +18,7 @@ VALIDATION_DATA = {
 	'mobile1.html': {
 		SPEEDOMETER_KEY: '56,488 km',
 		AGE_KEY: '08/2013',
-		PRICE_KEY: '€20,444 (Gross)',
+		PRICE_KEY: '€20,444 ',
 		POWER_KEY: '165 kW'
 	}
 }
