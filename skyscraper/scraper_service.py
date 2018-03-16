@@ -57,7 +57,7 @@ class ScraperService:
 				response = requests.get(car_url, headers=headers)
 				content = str(response.content, encoding='utf-8')
 			else:
-				content = str(self.htmls[car_url], encoding='utf-8')
+				content = self.htmls[car_url].encode('utf-8')
 			content = content.replace('\xa0', ' ')
 			car_soup = BeautifulSoup(content, 'lxml')
 			print("Content to scrape" + content)
