@@ -19,6 +19,7 @@ class TestScraping(unittest.TestCase):
 			abs_path = list(filter(lambda test_file: test_file.endswith(file_name), self.files_under_test))[0]
 			with open(abs_path, 'rb') as html_file:
 				file_content = html_file.read()
+				file_content = str(file_content, encoding='utf-8')
 				scraper = ScraperServiceFactory.get_for_dict({file_name: file_content})
 				car_data = scraper.get_car_data()
 				actual_value = car_data[0]
