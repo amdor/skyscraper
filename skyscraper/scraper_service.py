@@ -40,6 +40,7 @@ class ScraperService:
 		parsed_data[PRICE_KEY] = price
 
 		power = soup.find(text=re.compile('\d{1,4} ?kW'))
+		print('Power is ' + power)
 		# get only the kW part
 		parsed_data[POWER_KEY] = re.search('\d{1,4} ?kW(?=.*)', power)[0]
 		return parsed_data

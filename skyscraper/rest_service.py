@@ -1,6 +1,5 @@
 from flask import Flask, request, abort, Response
 from flask_restful import Resource, Api
-import re
 
 from skyscraper.comparator_service import CarComparator
 from skyscraper.scraper_service import ScraperService, ScraperServiceFactory
