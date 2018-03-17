@@ -20,9 +20,13 @@ Usage:
 
 
 class ScraperService:
-	def __init__(self, car_urls=[], htmls = {}):
+	def __init__(self, car_urls=[], htmls={}):
 		self.car_urls = car_urls
 		self.htmls = htmls
+
+	@staticmethod
+	def __extract_result(search_result):
+		return '' if not search_result else search_result[0]
 
 	@staticmethod
 	def __parse_car(soup, url):
@@ -30,22 +34,22 @@ class ScraperService:
 		soup_text = soup.text.replace('\xa0', ' ')
 
 		# numbers delimited by dot, space or coma, find the first
-		# mileage = soup.find(text=re.compile('^((\d{1,3}[\.| |,]?){1,3})km|miles$'))
-		mileage = re.search('((\d{1,3}[., ]?){1,3})km|miles', soup_text)[0]
+		search_result = re.search('((\d{1,3}[., ]?){1,3})km|miles', soup_text)
+		mileage = ScraperService.__extract_result(search_result)
 		parsed_data[SPEEDOMETER_KEY] = mileage
 
 		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
-		# prod_date = soup.find(text=re.compile('^(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})$'))
-		prod_date = re.search('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})', soup_text)[0]
+		search_result = re.search('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})', soup_text)
+		prod_date = ScraperService.__extract_result(search_result)
 		parsed_data[AGE_KEY] = prod_date
 
-		# price = soup.find(text=re.compile('^(\$|€|£|Ft)? ?-?(\d{1,3}[\.| |,]?){1,3}(?(1)|(1))'))
-		price = re.search('(€|£|(Ft)) ?(\d{1,3}[., ]?){1,3}(?(1)|(1))', soup_text)[0]
+		search_result = re.search('((€|£|(Ft)) ?(\d{1,3}[., ]?){1,3})|((\d{1,3}[., ]?){1,3}(€|£|(Ft)))', soup_text)
+		price = ScraperService.__extract_result(search_result)
 		parsed_data[PRICE_KEY] = price
 
-		# power = soup.find(text=re.compile('\d{1,4} ?kW'))
-		power = re.search('\d{1,4} ?kW', soup_text)[0]
+		search_result = re.search('\d{1,4} ?kW', soup_text)
+		power = ScraperService.__extract_result(search_result)
 		# get only the kW part
 		parsed_data[POWER_KEY] = power
 		return parsed_data
@@ -82,7 +86,7 @@ class ScraperServiceFactory:
 		:param content_list: list of html pages in same order as in url list
 		:return: new ScraperService instance with the given content
 		"""
-		htmls = {url_list[i]:content_list[i] for i in range(len(url_list))}
+		htmls = {url_list[i]: content_list[i] for i in range(len(url_list))}
 		return ScraperService(url_list, htmls)
 
 	@staticmethod
@@ -93,6 +97,17 @@ class ScraperServiceFactory:
 		:return: a ScraperService of the given data
 		"""
 		return ScraperService([*htmls], htmls)
+
+	@staticmethod
+	def get_for_list_and_dict(url_list: list, htmls: dict) -> ScraperService:
+		"""
+		Convenience method for ScraperService creation. Urls might be different from urls in htmls' keys
+		:param url_list: list of urls
+		:param htmls: dictionary where the keys are urls and the values are the html contents of the urls
+		:return: a ScraperService of the given data
+		"""
+		complete_url_list = list({*htmls} | set(url_list))
+		return ScraperService(complete_url_list, htmls)
 
 
 def main():
@@ -108,6 +123,5 @@ def main():
 		print(car['CarUri'])
 		print(car['worth'])
 
-
-if __name__ == "__main__":
-	main()
+	if __name__ == "__main__":
+		main()
