@@ -6,13 +6,13 @@ VALIDATION_DATA = {
 	'hahu1.html': {
 		SPEEDOMETER_KEY: '98 100 km',
 		AGE_KEY: '2014/1',
-		PRICE_KEY: '€ 26.535',
+		PRICE_KEY: '8.300.000 Ft',
 		POWER_KEY: '190 kW'
 	},
 	'hahu2.html': {
 		SPEEDOMETER_KEY: '178 000 km',
 		AGE_KEY: '2012/7',
-		PRICE_KEY: '€ 29.528',
+		PRICE_KEY: '9.200.000 Ft',
 		POWER_KEY: '230 kW'
 	},
 	'mobile1.html': {

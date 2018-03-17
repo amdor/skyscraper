@@ -41,13 +41,13 @@ class ScrapeByUrls(Resource):
 			# validate html contents
 			html_contents = request_data.get(HTML_KEY, {})
 			if html_contents:
-				valid_html_contents = {url: html_contents[url] for url in valid_urls}
+				valid_html_contents = {url: html_contents[url] for url in valid_urls if url in html_contents}
 			else:
 				valid_html_contents = {}
 
 			# scraping
 			if valid_html_contents:
-				scraper = ScraperServiceFactory.get_for_dict(valid_html_contents)
+				scraper = ScraperServiceFactory.get_for_list_and_dict(valid_urls, valid_html_contents)
 			else:
 				scraper = ScraperService(valid_urls)
 			data = scraper.get_car_data()
