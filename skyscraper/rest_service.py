@@ -66,5 +66,5 @@ class ScrapeByUrls(Resource):
 api.add_resource(ScrapeByUrls, '/')
 
 if __name__ == '__main__':
-	context = ('certificate.crt', 'privatekey.key')  # certificate and key files
-	app.run(ssl_context=context)
+	#context = ('certificate.crt', 'privatekey.key')  # certificate and key files
+	app.run()
