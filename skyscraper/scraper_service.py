@@ -32,6 +32,7 @@ class ScraperService:
 	def __parse_car(soup, url):
 		parsed_data = {CAR_KEY: url}
 		soup_text = soup.text.replace('\xa0', ' ')
+		print(soup_text)
 
 		# numbers delimited by dot, space or coma, find the first
 		search_result = re.search('((\d{1,3}[., ]?){1,3})km|miles', soup_text)
