@@ -24,11 +24,11 @@ class TestHappyPaths(unittest.TestCase):
 	def test_null_worth(self):
 		car = self.defaultInput[0]
 		compare_cars(self.defaultInput)
-		self.assertEqual(car[WORTH_KEY], 0)
+		self.assertEqual(car[WORTH_KEY], 30)
 
 	def test_no_properties(self):
 		car = {
 			CAR_KEY: 'http://hasznaltauto.hu/auto'
 		}
 		compare_cars([car])
-		self.assertEqual(car[WORTH_KEY], -20)
+		self.assertEqual(car[WORTH_KEY], 10)
