@@ -29,29 +29,44 @@ class ScraperService:
 		return '' if not search_result else search_result[0]
 
 	@staticmethod
+	def __search_for_regex(expression, text, start_pos):
+		search_result = re.compile(expression).search(text, start_pos)
+		# fallback
+		if not search_result and start_pos > 0:
+			return ScraperService.__search_for_regex(expression, text, 0)
+		return ScraperService.__extract_result(search_result)
+
+	@staticmethod
 	def __parse_car(soup, url):
 		parsed_data = {CAR_KEY: url}
 		soup_text = soup.text.replace('\xa0', ' ')
+		# at first we search from the start of texts, then trying start-delta
+		data_table_assumed_position = 0
+		data_table_delta = 700
+
+		# our kinda fix position
+		search_result = re.search('\d{1,4} ?kW', soup_text)
+
+		print('Search result for power ' + str(search_result))
+		power = ScraperService.__extract_result(search_result)
+		parsed_data[POWER_KEY] = power
+
+		if search_result:
+			search_result_start = search_result.span()[0]
+			data_table_assumed_position = search_result_start - data_table_delta if search_result_start > data_table_delta else 0
 
 		# numbers delimited by dot, space or coma, find the first
-		search_result = re.search('((\d{1,3}[., ]?){1,3})km|miles', soup_text)
-		mileage = ScraperService.__extract_result(search_result)
-		parsed_data[SPEEDOMETER_KEY] = mileage
+		parsed_data[SPEEDOMETER_KEY] = ScraperService.__search_for_regex('((\d{1,3}[., ]?){1,3})([kK][mM])|(miles)',
+																		 soup_text, data_table_assumed_position)
 
 		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
-		search_result = re.search('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})', soup_text)
-		prod_date = ScraperService.__extract_result(search_result)
-		parsed_data[AGE_KEY] = prod_date
+		parsed_data[AGE_KEY] = ScraperService.__search_for_regex('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})',
+																 soup_text, data_table_assumed_position)
 
-		search_result = re.search('((€|£|(Ft)) ?(\d{1,3}[., ]?){1,3})|((\d{1,3}[., ]?){1,3}(€|£|(Ft)))', soup_text)
-		price = ScraperService.__extract_result(search_result)
-		parsed_data[PRICE_KEY] = price
-
-		search_result = re.search('\d{1,4} ?kW', soup_text)
-		power = ScraperService.__extract_result(search_result)
-		# get only the kW part
-		parsed_data[POWER_KEY] = power
+		parsed_data[PRICE_KEY] = ScraperService.__search_for_regex(
+			'((€|£|(Ft)|(HUF)) ?(\d{1,3}[., ]?){2,3})|((\d{1,3}[., ]?){2,3}(€|£|(Ft)|(HUF)))', soup_text,
+			data_table_assumed_position)
 		return parsed_data
 
 	def get_car_data(self):
