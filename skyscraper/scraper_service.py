@@ -47,7 +47,6 @@ class ScraperService:
 		# our kinda fix position
 		search_result = re.search('\d{1,4} ?kW', soup_text)
 
-		print('Search result for power ' + str(search_result))
 		power = ScraperService.__extract_result(search_result)
 		parsed_data[POWER_KEY] = power
 
@@ -139,5 +138,6 @@ def main():
 		print(car['CarUri'])
 		print(car['worth'])
 
-	if __name__ == "__main__":
-		main()
+
+if __name__ == "__main__":
+	main()
