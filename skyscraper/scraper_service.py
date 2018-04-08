@@ -2,7 +2,6 @@ import argparse
 import re
 
 import requests
-import unicodedata
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
@@ -66,7 +65,6 @@ class ScraperService:
 		parsed_data[PRICE_KEY] = ScraperService.__search_for_regex(
 			'((€|£|(Ft)|(HUF)) ?(\d{1,3}[., ]?){2,3})|((\d{1,3}[., ]?){2,3}(€|£|(Ft)|(HUF)))', soup_text,
 			data_table_assumed_position)
-
 		return parsed_data
 
 	def get_car_data(self):

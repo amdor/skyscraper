@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from enum import Enum
 
 CAR_KEY = 'CarUri'
@@ -45,3 +46,11 @@ class Conditions(Enum):
 	UNDAMAGED = 'Sérülésmentes'
 	PRESERVED = 'Megkímélt'
 	NOVEL = 'Újszerű'
+
+URL_KEY = 'carUrls'
+HTML_KEY = 'htmls'
+USER_ID_TOKEN_KEY = 'idToken'
+CAR_DATA_KEY = 'carData'
+MONGO_URL = os.environ.get('MONGODB_URI')
+DB_NAME = os.environ.get('DB_NAME')
+CAR_DETAILS = 'car_details'

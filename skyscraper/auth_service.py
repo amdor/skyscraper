@@ -1,13 +1,16 @@
+import string
+from typing import Tuple
+
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-authenticated_users = []
+authenticated_users = set()
 CLIENT_ID = '498731538493-etubco5p4at0chs18tuqmqmm8g3ngtr1.apps.googleusercontent.com'
 
 
 class AuthService:
 	@staticmethod
-	def validate_token(token) -> bool:
+	def validate_token(token):
 		try:
 			# Specify the CLIENT_ID of the app that accesses the backend:
 			idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)
@@ -26,8 +29,7 @@ class AuthService:
 
 			# ID token is valid. Get the user's Google Account ID from the decoded token.
 			userid = idinfo['sub']
-			print("Saving user " + userid)
-			authenticated_users.append(userid)
-			return True
+			authenticated_users.add(userid)
+			return True, userid
 		except ValueError:
-			return False
+			return False, ''
