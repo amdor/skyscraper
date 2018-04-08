@@ -1,17 +1,15 @@
 from flask import Flask, request, abort, Response
 from flask_restful import Resource, Api
-from skyscraper.auth_service import AuthService, authenticated_users
+
+from skyscraper.auth_service import AuthService
 
 from skyscraper.comparator_service import CarComparator
+from skyscraper.database_service import DatabaseService
 from skyscraper.scraper_service import ScraperService, ScraperServiceFactory
+from skyscraper.utils.constants import URL_KEY, HTML_KEY, USER_ID_TOKEN_KEY, CAR_DATA_KEY
 
 app = Flask(__name__)
 api = Api(app)
-
-URl_PATTERN = '^http[s]?:\/\/www.hasznaltauto.hu\/auto\/([a-zA-Z]|\d|\/|_|-|\.)+$'
-URL_KEY = 'carUrls'
-HTML_KEY = 'htmls'
-USER_ID_TOKEN_KEY = 'idToken'
 
 
 class ScrapeByUrls(Resource):
@@ -50,9 +48,9 @@ class ScrapeByUrls(Resource):
 
 	def options(self):
 		return {'Allow': 'POST'}, 200, \
-				{'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Methods': 'POST,GET',
-					'Access-Control-Allow-Headers': 'Content-Type'}
+			   {'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST,GET',
+				'Access-Control-Allow-Headers': 'Content-Type'}
 
 
 class LoadSavedCars(Resource):
@@ -61,41 +59,38 @@ class LoadSavedCars(Resource):
 			request_data = request.get_json()
 
 			id_token = request_data.get(USER_ID_TOKEN_KEY, '')
-			authorized = AuthService.validate_token(id_token)
-			if not authorized[0]:
+			(authorized, auth_id) = AuthService.validate_token(id_token)
+			if not authorized:
 				abort(Response('Authorization failed', status=401))
 
-			return [
-					   {
-						   "CarUri": "https://www.hasznaltauto.hu/auto/bmw/x4/bmw_x4_3.5_d_automata_m-packet.x-line.313le-11200623",
-						   "prod_date": "2014/8",
-						   "power": "230 kW, 313 LE",
-						   "price": "13.300.000 Ft",
-						   "speedometer": "73 000 km",
-						   "worth": 25.18
-					   },
-					   {
-						   "CarUri": "https://www.hasznaltauto.hu/szemelyauto/audi/a6/audi_a6_2_0_tdi_ultra_75_000_km_sz_konyv_s_mentes-12769076",
-						   "power": "140 kW",
-						   "price": "7 199 000 Ft",
-						   "prod_date": "2014/12",
-						   "speedometer": "75 000 km",
-						   "worth": 22
-					   }
-				   ], 200, {'Access-Control-Allow-Origin': '*'}
+			car_data = DatabaseService.get_car_data(auth_id)
+			return car_data[auth_id], 200, {'Access-Control-Allow-Origin': '*'}
+
+	def put(self):
+		if request.is_json:
+			request_data = request.get_json()
+
+			id_token = request_data.get(USER_ID_TOKEN_KEY, '')
+			car_data = request_data.get(CAR_DATA_KEY, [])
+			(authorized, auth_id) = AuthService.validate_token(id_token)
+			if not authorized or not car_data:
+				abort(Response('Authorization failed', status=401))
+
+			DatabaseService.save_car_data(auth_id, car_data)
+			return 'Success', 200, {'Access-Control-Allow-Origin': '*'}
 		else:
 			abort(Response('Body is not json', status=400, headers={'Access-Control-Allow-Origin': '*'}))
 
 	def options(self):
 		return {'Allow': 'POST'}, 200, \
-				{'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Methods': 'POST,GET',
-					'Access-Control-Allow-Headers': 'Content-Type'}
+			   {'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Methods': 'POST,PUT',
+				'Access-Control-Allow-Headers': 'Content-Type'}
 
 
 api.add_resource(ScrapeByUrls, '/')
 api.add_resource(LoadSavedCars, '/saved-cars')
 
 if __name__ == '__main__':
-	#context = ('certificate.crt', 'privatekey.key')  # certificate and key files
+	# context = ('certificate.crt', 'privatekey.key')  # certificate and key files
 	app.run()

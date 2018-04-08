@@ -11,3 +11,4 @@ html5lib==1.0.1
 currencyconverter==0.13.3
 gunicorn==19.7.1
 google-auth===1.4.1
+pymongo===3.6.1

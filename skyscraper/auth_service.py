@@ -10,7 +10,7 @@ CLIENT_ID = '498731538493-etubco5p4at0chs18tuqmqmm8g3ngtr1.apps.googleuserconten
 
 class AuthService:
 	@staticmethod
-	def validate_token(token) -> Tuple[bool, string]:
+	def validate_token(token):
 		try:
 			# Specify the CLIENT_ID of the app that accesses the backend:
 			idinfo = id_token.verify_oauth2_token(token, requests.Request(), CLIENT_ID)

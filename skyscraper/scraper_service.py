@@ -2,7 +2,6 @@ import argparse
 import re
 
 import requests
-import unicodedata
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
