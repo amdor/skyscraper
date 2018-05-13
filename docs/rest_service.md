@@ -49,3 +49,90 @@
  
 * **Error Response:**
 TBD
+
+**Get saved cars**
+----
+  Returns json data containing the cars' main attributes and its' value.
+
+* **URL**
+
+  /saved-cars
+
+* **Method:**
+
+  `POST`
+  
+*  **URL Params**
+    NONE
+
+* **Data Params**
+  A valid logged in google authentication id token. E.g.:
+  ```json
+    {"idToken":"asdfasdfadfdafdadg123"}
+  ```
+  
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** 
+    ```json
+    [
+      {
+        "CarUri": "url", 
+        "power": "221 kW", 
+        "speedometer": "34 600 km", 
+        "prod_date": "2016/6", 
+        "price": "13 390 000 Ft", 
+        "worth": 32.79, 
+        "linkName": "Audi S3"
+      }...
+    ]
+    ```
+ 
+* **Error Response:**
+TBD
+
+**Save cars**
+----
+  Send car data for save
+
+* **URL**
+
+  /saved-cars
+
+* **Method:**
+
+  `PUT`
+  
+*  **URL Params**
+    NONE
+
+* **Data Params**
+  A valid logged in google authentication id token and car data to save with optionally the name that we want to display for the link. E.g.:
+  ```json
+    {
+      "idToken":"asfdaf123",
+      "carData":[
+        {
+          "CarUri":"url",
+          "power":"221 kW",
+          "speedometer":"34 600 km",
+          "prod_date":"2016/6",
+          "price":"13 390 000 Ft",
+           "worth":32.79,
+           "linkName": "Audi S3
+      ]
+    …
+    }
+  ```
+  
+* **Success Response:**
+
+  * **Code:** 200 <br />
+    **Content:** 
+    ```json
+    "Success"
+    ```
+ 
+* **Error Response:**
+TBD
