@@ -13,23 +13,6 @@ PRICE_KEY = 'price'
 SPEEDOMETER_KEY = 'speedometer'
 TRUNK_KEY = 'trunk'
 
-AGE_PARSE_KEY = 'Évjárat'
-CONDITION_PARSE_KEY = 'Állapot'
-MASS_PARSE_KEY = 'Saját tömeg'
-POWER_PARSE_KEY = 'Teljesítmény'
-PRICE_PARSE_KEY = 'Vételár'
-SALE_PRICE_PARSE_KEY = 'Akciós ár'
-SPEEDOMETER_PARSE_KEY = 'Kilométeróra állása'
-TRUNK_PARSE_KEY = 'Csomagtartó'
-
-CAR_FEATURE_KEY_MAP = {AGE_PARSE_KEY: AGE_KEY,
-					   CONDITION_PARSE_KEY: CONDITION_KEY,
-					   MASS_PARSE_KEY: MASS_KEY,
-					   POWER_PARSE_KEY: POWER_KEY,
-					   PRICE_PARSE_KEY: PRICE_KEY,
-					   SALE_PRICE_PARSE_KEY: PRICE_KEY,
-					   SPEEDOMETER_PARSE_KEY: SPEEDOMETER_KEY,
-					   TRUNK_PARSE_KEY: TRUNK_KEY}
 
 ACCEPTED_CURRENCIES = ['$', '€', '£', 'Ft', 'FT', 'HUF']
 ACCEPTED_CURRENCY_KEYS = {'$': 'USD',
@@ -51,6 +34,8 @@ URL_KEY = 'carUrls'
 HTML_KEY = 'htmls'
 USER_ID_TOKEN_KEY = 'idToken'
 CAR_DATA_KEY = 'carData'
-MONGO_URL = os.environ.get('MONGODB_URI')
-DB_NAME = os.environ.get('DB_NAME')
+MONGO_URL = 'mongodb://heroku_3dl7hhzd:mt7air71j1vggp2mm5hpnsu9at@ds239029.mlab.com:39029/heroku_3dl7hhzd'
+# MONGO_URL = os.environ.get('MONGODB_URI')
+DB_NAME = 'heroku_3dl7hhzd'
+# DB_NAME = os.environ.get('DB_NAME')
 CAR_DETAILS = 'car_details'
