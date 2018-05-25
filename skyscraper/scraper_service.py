@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
 from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY, POWER_KEY
+from skyscraper.utils.date_helper import is_string_year, is_string_month
 
 """
 The scraper/html parser module for the hasznaltauto.hu's car detail pages.
@@ -28,11 +29,11 @@ class ScraperService:
 		return '' if not search_result else search_result[0]
 
 	@staticmethod
-	def __search_for_regex(expression, text, start_pos):
-		search_result = re.compile(expression).search(text, start_pos)
+	def __search_for_regex(expression, text, start_pos=0, end_pos=-1):
+		search_result = re.compile(expression).search(text, start_pos, end_pos)
 		# fallback
 		if not search_result and start_pos > 0:
-			return ScraperService.__search_for_regex(expression, text, 0)
+			return ScraperService.__search_for_regex(expression, text, 0, len(text)-1)
 		return ScraperService.__extract_result(search_result)
 
 	@staticmethod
@@ -40,8 +41,8 @@ class ScraperService:
 		parsed_data = {CAR_KEY: url}
 		soup_text = soup.text.replace('\xa0', ' ')
 		# at first we search from the start of texts, then trying start-delta
-		data_table_assumed_position = 0
-		data_table_delta = 700
+		data_assumed_start_position = 0
+		data_radius = 1000
 
 		# our kinda fix position
 		search_result = re.search('\d{1,4} ?kW', soup_text)
@@ -52,21 +53,50 @@ class ScraperService:
 
 		if search_result:
 			search_result_start = search_result.span()[0]
-			data_table_assumed_position = search_result_start - data_table_delta if search_result_start > data_table_delta else 0
+			data_assumed_start_position = search_result_start - data_radius if search_result_start > data_radius else 0
+			data_assumed_end_position = search_result_start + data_radius
+			data_assumed_end_position = data_assumed_end_position if data_assumed_end_position < len(soup_text) else -1
 
 		# numbers delimited by dot, space or coma, find the first
 		parsed_data[SPEEDOMETER_KEY] = ScraperService.__search_for_regex('((\d{1,3}[., ]?){1,3})([kK][mM])|(miles)',
-																		 soup_text, data_table_assumed_position)
+												 soup_text, data_assumed_start_position, data_assumed_end_position)
 
 		# all yyyy/mm and mm/yyyy formats are accepted (days also)
 		# note: parser must check values
-		parsed_data[AGE_KEY] = ScraperService.__search_for_regex('(\d{4}(/\d{1,2}){1,2})|(\d{1,2}(/\d{1,2})?/\d{4})',
-																 soup_text, data_table_assumed_position)
+		date_string = ScraperService.__search_for_regex('(\d{4}([/.]\d{1,2}){1,2})|(\d{1,2}([/.]\d{1,2})?[/.]\d{4})',
+												 soup_text, data_assumed_start_position, data_assumed_end_position)
+		parsed_data[AGE_KEY] = date_string if ScraperService.__is_date_valid(date_string) else ''
 
 		parsed_data[PRICE_KEY] = ScraperService.__search_for_regex(
 			'((€|£|(Ft)|(HUF)) ?(\d{1,3}[., ]?){2,3})|((\d{1,3}[., ]?){2,3}(€|£|(Ft)|(HUF)))', soup_text,
-			data_table_assumed_position)
+			data_assumed_start_position, data_assumed_end_position)
 		return parsed_data
+
+	@staticmethod
+	def __is_date_valid(date_string):
+		"""
+		Validates the date string
+		Valid values are YYYY/MM[/*] and [DD/]MM/YYYY
+		Delimiter can be . and /
+		:rtype Boolean
+		:return True if string is a date False otherwise
+		"""
+		if date_string == '':
+			return False
+		date_string = date_string.replace('.', '/')
+		prod_date_arr = list(map(int, date_string.split('/')))
+		if len(prod_date_arr) < 2:
+			return False
+		elif len(prod_date_arr) >= 2:
+			# 2005/03
+			if is_string_year(prod_date_arr[0]):
+				return is_string_month(prod_date_arr[1])
+			# 03/2005
+			elif is_string_year(prod_date_arr[1]):
+				return is_string_month(prod_date_arr[0])
+			# 25/03/2005
+			else:
+				return len(prod_date_arr) > 2 and is_string_year(prod_date_arr[2]) and is_string_month(prod_date_arr[1])
 
 	def get_car_data(self):
 		"""

@@ -6,6 +6,7 @@ from currency_converter import CurrencyConverter
 from skyscraper.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY, ACCEPTED_CURRENCIES, \
 	ACCEPTED_CURRENCY_KEYS
 from skyscraper.utils.constants import POWER_KEY, CONDITION_KEY, Conditions, TRUNK_KEY
+from skyscraper.utils.date_helper import is_string_year, is_string_month
 
 
 class ValueParser:
@@ -140,7 +141,7 @@ class ValueParser:
 		:return: the worth loss by the car's age
 		"""
 		prod_date = self.car_data.get(AGE_KEY, 0)
-		if prod_date == 0:
+		if prod_date == 0 or prod_date == '':
 			return 0
 		current_date = date.today()
 
@@ -151,23 +152,23 @@ class ValueParser:
 			return 0
 		elif len(prod_date_arr) >= 2:
 			# 2005/03
-			if self.__is_string_year(prod_date_arr[0]):
+			if is_string_year(prod_date_arr[0]):
 				year_string = prod_date_arr[0]
-				if self.__is_string_month(prod_date_arr[1]):
+				if is_string_month(prod_date_arr[1]):
 					month_string = prod_date_arr[1]
 				else:
 					return 0
 			# 03/2005
-			elif self.__is_string_year(prod_date_arr[1]):
+			elif is_string_year(prod_date_arr[1]):
 				year_string = prod_date_arr[1]
-				if self.__is_string_month(prod_date_arr[0]):
+				if is_string_month(prod_date_arr[0]):
 					month_string = prod_date_arr[0]
 				else:
 					return 0
 			# 25/03/2005
-			elif self.__is_string_year(prod_date_arr[2]):
+			elif len(prod_date_arr) > 2 and is_string_year(prod_date_arr[2]):
 				year_string = prod_date_arr[2]
-				if self.__is_string_month(prod_date_arr[1]):
+				if is_string_month(prod_date_arr[1]):
 					month_string = prod_date_arr[1]
 				else:
 					return 0
@@ -191,11 +192,4 @@ class ValueParser:
 			price_loss -= log10(years_old - 3) * 10 + 60 - 0.0006 * years_old ** 3
 		return round(price_loss / 3)
 
-	@staticmethod
-	def __is_string_year(year_string):
-		current_date = date.today()
-		return 1900 <= int(year_string) <= int(current_date.year)
 
-	@staticmethod
-	def __is_string_month(month_string):
-		return 1 <= int(month_string) <= 12
