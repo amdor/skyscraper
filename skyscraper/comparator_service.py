@@ -20,6 +20,7 @@ class CarComparator:
 		car_worth += value_parser.get_mass_value()
 		car_worth += value_parser.get_speedometer_value()
 		car_worth += value_parser.get_price_value()
+		car_worth += value_parser.get_age_value()
 
 		return round(car_worth, 2) + 30
 
