@@ -18,7 +18,7 @@ class TestBasicPaths(unittest.TestCase):
 		month_diff = today.month - months
 		if month_diff <= 0:
 			years += 1
-			months = 12 - month_diff
+			months = 12 + month_diff
 		else:
 			months = month_diff
 		return date(today.year - years, months, 1).strftime("%Y/%m")
