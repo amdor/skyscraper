@@ -5,7 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from skyscraper.comparator_service import CarComparator
-from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY, POWER_KEY
+from skyscraper.utils.value_parser import ValueParser
+from skyscraper.utils.constants import SPEEDOMETER_KEY, CAR_KEY, AGE_KEY, PRICE_KEY, POWER_KEY, CURRENCY_KEY
 from skyscraper.utils.date_helper import is_string_year, is_string_month
 
 """
@@ -47,7 +48,7 @@ class ScraperService:
 		# our kinda fix position
 		search_result = re.search('\d{1,4} ?kW', soup_text)
 
-		print('Search result for power ' + str(search_result))
+		# print('Search result for power ' + str(search_result))
 		power = ScraperService.__extract_result(search_result)
 		parsed_data[POWER_KEY] = power
 
@@ -67,9 +68,11 @@ class ScraperService:
 												 soup_text, data_assumed_start_position, data_assumed_end_position)
 		parsed_data[AGE_KEY] = date_string if ScraperService.__is_date_valid(date_string) else ''
 
-		parsed_data[PRICE_KEY] = ScraperService.__search_for_regex(
+		price_text = ScraperService.__search_for_regex(
 			'((€|£|(Ft)|(HUF)) ?(\d{1,3}[., ]?){2,3})|((\d{1,3}[., ]?){2,3}(€|£|(Ft)|(HUF)))', soup_text,
 			data_assumed_start_position, data_assumed_end_position)
+		parsed_data[PRICE_KEY] = ValueParser.get_first_number(price_text)
+		parsed_data[CURRENCY_KEY] = ValueParser.get_currency_iso_symbol(price_text)
 		return parsed_data
 
 	@staticmethod

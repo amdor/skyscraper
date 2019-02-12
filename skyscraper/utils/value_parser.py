@@ -4,7 +4,7 @@ from math import log10
 from currency_converter import CurrencyConverter
 
 from skyscraper.utils.constants import MASS_KEY, SPEEDOMETER_KEY, PRICE_KEY, AGE_KEY, ACCEPTED_CURRENCIES, \
-	ACCEPTED_CURRENCY_KEYS
+	ACCEPTED_CURRENCY_KEYS, CURRENCY_KEY
 from skyscraper.utils.constants import POWER_KEY, CONDITION_KEY, Conditions, TRUNK_KEY
 from skyscraper.utils.date_helper import is_string_year, is_string_month
 
@@ -15,7 +15,7 @@ class ValueParser:
 		self.car_data = car_data
 
 	@staticmethod
-	def __get_first_number(string_value):
+	def get_first_number(string_value):
 		"""
 		Parses the first number of a string, that starts with a number.
 		:rtype: int
@@ -40,7 +40,7 @@ class ValueParser:
 		car_data[POWER_KEY]: the text representation e.g. '62 kW'
 		:return: the value e.g. 62 or null if power is not present
 		"""
-		return ValueParser.__get_first_number(self.car_data.get(POWER_KEY, '0')) / 14
+		return ValueParser.get_first_number(self.car_data.get(POWER_KEY, '0')) / 14
 
 	def get_condition_value(self):
 		"""
@@ -65,7 +65,7 @@ class ValueParser:
 		:return: the value for trunk space
 		"""
 		trunk_space_text = self.car_data.get(TRUNK_KEY, '0')
-		trunk_space_value = ValueParser.__get_first_number(trunk_space_text)
+		trunk_space_value = ValueParser.get_first_number(trunk_space_text)
 		return round(trunk_space_value / 150)
 
 	def get_mass_value(self):
@@ -74,7 +74,7 @@ class ValueParser:
 		:return: the value for mass
 		"""
 		mass_text = self.car_data.get(MASS_KEY, '0')
-		mass_value = ValueParser.__get_first_number(mass_text)
+		mass_value = ValueParser.get_first_number(mass_text)
 		return round(mass_value / 500)
 
 	def get_speedometer_value(self):
@@ -86,7 +86,7 @@ class ValueParser:
 		:return: value for speedometer
 		"""
 		speedometer_text = self.car_data.get(SPEEDOMETER_KEY, '-12')
-		speedometer_value = ValueParser.__get_first_number(speedometer_text)
+		speedometer_value = ValueParser.get_first_number(speedometer_text)
 		if 0 < speedometer_value:
 			speedometer_value = speedometer_value / 10000
 		else:
@@ -98,23 +98,26 @@ class ValueParser:
 		return round(speedometer_value) * -1
 
 	@staticmethod
-	def __get_in_huf(amount_in_original_currency):
-		"""
-		Converts any accepted currencies to HUF
-		:param amount_in_original_currency: amount string in original currency to be converted
-		:return: value in HUF
-		"""
+	def get_currency_iso_symbol(amount_in_original_currency):
 		from_currency = 'EUR'
 		for currency_symbol in ACCEPTED_CURRENCIES:
 			if currency_symbol in amount_in_original_currency:
 				from_currency = ACCEPTED_CURRENCY_KEYS[currency_symbol]
 				break
-		trimmed_amount_number = ValueParser.__get_first_number(amount_in_original_currency)
+		return from_currency
+
+	@staticmethod
+	def __get_in_huf(amount_in_original_currency, from_currency='EUR'):
+		"""
+		Converts any accepted currencies to HUF
+		:param amount_in_original_currency: amount string in original currency to be converted
+		:return: value in HUF
+		"""
 		if from_currency == 'HUF':
-			return trimmed_amount_number
+			return amount_in_original_currency
 		else:
 			converter = CurrencyConverter()
-			new_currency = converter.convert(trimmed_amount_number, from_currency, 'HUF')
+			new_currency = converter.convert(amount_in_original_currency, from_currency, 'HUF')
 			return new_currency
 
 	def get_price_value(self):
@@ -123,11 +126,11 @@ class ValueParser:
 		(like no power or price data), NOTE: max cap
 		:return: price to power ratio or 0 if there is no price or power
 		"""
-		power = ValueParser.__get_first_number(self.car_data.get(POWER_KEY, '0'))
+		power = ValueParser.get_first_number(self.car_data.get(POWER_KEY, '0'))
 		ratio = 5000 * power
 		price_text = self.car_data.get(PRICE_KEY, '0')
-		# price_value = ValueParser.__get_first_number(price_text)
-		price_value = ValueParser.__get_in_huf(price_text)
+		original_currency = self.car_data.get(CURRENCY_KEY, '0')
+		price_value = ValueParser.__get_in_huf(price_text, original_currency)
 		if min(price_value, power) <= 0:
 			return 0
 		price_value = round(price_value / ratio)
