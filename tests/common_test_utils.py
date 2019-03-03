@@ -29,7 +29,7 @@ VALIDATION_DATA = {
 
 def gather_extension_files(root):
     """
-    Traverses through all subdirectories of root collecting *.js filenames. Recursive.
+    Traverses through all subdirectories of root collecting *.html filenames. Recursive.
     :param root: the basepoint of search
     :rtype: set
     :return: all found js filenames
