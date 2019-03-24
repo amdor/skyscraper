@@ -42,8 +42,9 @@ class ScraperService:
         parsed_data = {CAR_KEY: url}
         soup_text = soup.text.replace('\xa0', ' ')
         # at first we search from the start of texts, then trying start-delta
-        data_assumed_start_position = 0
         data_radius = 1000
+        data_assumed_start_position = 0
+        data_assumed_end_position = -1
 
         # our kinda fix position
         search_result = re.search('\d{1,4} ?kW', soup_text)
@@ -56,7 +57,7 @@ class ScraperService:
             search_result_start = search_result.span()[0]
             data_assumed_start_position = search_result_start - data_radius if search_result_start > data_radius else 0
             data_assumed_end_position = search_result_start + data_radius
-            data_assumed_end_position = data_assumed_end_position if data_assumed_end_position < len(soup_text) else -1
+        data_assumed_end_position = data_assumed_end_position if data_assumed_end_position < len(soup_text) else -1
 
         # numbers delimited by dot, space or coma, find the first
         parsed_data[SPEEDOMETER_KEY] = ScraperService.__search_for_regex('((\d{1,3}[., ]?){1,3})([kK][mM])|(miles)',
