@@ -1,12 +1,9 @@
 from flask import Flask, request, abort, Response
 from flask_restful import Resource, Api
 
-from skyscraper.auth_service import AuthService
-
 from skyscraper.comparator_service import CarComparator
-from skyscraper.database_service import DatabaseService
 from skyscraper.scraper_service import ScraperService, ScraperServiceFactory
-from skyscraper.utils.constants import URL_KEY, HTML_KEY, USER_ID_TOKEN_KEY, CAR_DATA_KEY
+from skyscraper.utils.constants import URL_KEY, HTML_KEY
 
 app = Flask(__name__)
 api = Api(app)
@@ -53,43 +50,7 @@ class ScrapeByUrls(Resource):
 				'Access-Control-Allow-Headers': 'Content-Type'}
 
 
-class LoadSavedCars(Resource):
-	def post(self):
-		if request.is_json:
-			request_data = request.get_json()
-
-			id_token = request_data.get(USER_ID_TOKEN_KEY, '')
-			(authorized, auth_id) = AuthService.validate_token(id_token)
-			if not authorized:
-				abort(Response('Authorization failed', status=401))
-
-			car_data = DatabaseService.get_car_data(auth_id)
-			return car_data[auth_id], 200, {'Access-Control-Allow-Origin': '*'}
-
-	def put(self):
-		if request.is_json:
-			request_data = request.get_json()
-
-			id_token = request_data.get(USER_ID_TOKEN_KEY, '')
-			car_data = request_data.get(CAR_DATA_KEY, [])
-			(authorized, auth_id) = AuthService.validate_token(id_token)
-			if not authorized or not car_data:
-				abort(Response('Authorization failed', status=401))
-
-			DatabaseService.save_car_data(auth_id, car_data)
-			return 'Success', 200, {'Access-Control-Allow-Origin': '*'}
-		else:
-			abort(Response('Body is not json', status=400, headers={'Access-Control-Allow-Origin': '*'}))
-
-	def options(self):
-		return {'Allow': 'POST'}, 200, \
-			   {'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Methods': 'POST,PUT',
-				'Access-Control-Allow-Headers': 'Content-Type'}
-
-
 api.add_resource(ScrapeByUrls, '/')
-api.add_resource(LoadSavedCars, '/saved-cars')
 
 if __name__ == '__main__':
 	# context = ('certificate.crt', 'privatekey.key')  # certificate and key files

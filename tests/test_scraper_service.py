@@ -2,7 +2,7 @@ import os
 import unittest
 
 from skyscraper.scraper_service import ScraperServiceFactory
-from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY, CAR_KEY, PRICE_KEY, POWER_KEY
+from skyscraper.utils.constants import SPEEDOMETER_KEY, AGE_KEY, CAR_KEY, PRICE_KEY, POWER_KEY, CURRENCY_KEY
 from common_test_utils import gather_extension_files, VALIDATION_DATA
 
 
@@ -29,3 +29,4 @@ class TestScraping(unittest.TestCase):
 				self.assertEqual(expected_value[AGE_KEY], actual_value[AGE_KEY])
 				self.assertEqual(expected_value[PRICE_KEY], actual_value[PRICE_KEY])
 				self.assertEqual(expected_value[POWER_KEY], actual_value[POWER_KEY])
+				self.assertEqual(expected_value[CURRENCY_KEY], actual_value[CURRENCY_KEY])
